@@ -1,0 +1,123 @@
+<section class="row" id="easywebpush_subscription">
+  <div class="col-sm-12 text-center">
+    <h1>Test Install Easy Webpush Extension</h1>
+  </div>
+  <div class="col-sm-6 text-center">
+    <div style="padding: 1rem 0">
+      <button class="btn btn-primary btn-lg" id="easywebpush_subscribe">
+        Send random push
+      </button>
+      <button class="btn btn-disabled btn-lg" id="easywebpush_unsubscribe">
+        Unsubscribe
+      </button>
+    </div>
+  </div>
+  <div class="col-sm-6 text-center">
+    <div style="padding: 1rem 0; display: inline-block">
+      <button class="btn btn-success btn-lg" id="pwa_app_install">
+        Install App
+      </button>
+    </div>
+  </div>
+</section>
+
+<script>
+  $(document).ready(function () {
+    let isSubscribed = false;
+    const subscribeBtn = $("#easywebpush_subscribe");
+    const unsubscribeBtn = $("#easywebpush_unsubscribe");
+    unsubscribeBtn.hide();
+    subscribeBtn.hide();
+
+    const runPushCheck = async function () {
+      if (!EasyWebpushSW) return;
+      try {
+        isSubscribed = await EasyWebpushSW.isSubscribed();
+        if (isSubscribed.success) {
+          unsubscribeBtn.show();
+        } else {
+          buttonNotSubscribed();
+        }
+        subscribeBtn.show();
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    const btnLoading = function (button) {
+      button.prop("disabled", true);
+    };
+    const btnReset = function (button) {
+      button.prop("disabled", false);
+    };
+    const buttonSubscribed = function () {
+      subscribeBtn.addClass("btn-primary");
+      subscribeBtn.removeClass("btn-disabled");
+      subscribeBtn.html("Send random push");
+      isSubscribed = true;
+    };
+    const buttonNotSubscribed = function () {
+      subscribeBtn.removeClass("btn-primary");
+      subscribeBtn.addClass("btn-disabled");
+      subscribeBtn.html("Subscribe");
+      isSubscribed = false;
+    };
+    subscribeBtn.click(async function () {
+      try {
+        btnLoading(subscribeBtn);
+        if (isSubscribed) {
+          await sendCustomerPush();
+        } else {
+          const res = await EasyWebpushSW.subscribe();
+          if (res.success) {
+            setTimeout(() => {
+              unsubscribeBtn.show();
+              buttonSubscribed();
+            }, 10);
+          }
+        }
+      } catch (error) {
+        console.log(error);
+      } finally {
+        btnReset(subscribeBtn);
+      }
+    });
+    unsubscribeBtn.click(async function () {
+      try {
+        if (isSubscribed) {
+          btnLoading(unsubscribeBtn);
+          const res = await EasyWebpushSW.unsubscribe();
+          if (res.success) {
+            unsubscribeBtn.hide();
+            buttonNotSubscribed();
+          }
+        } else {
+          unsubscribeBtn.hide();
+        }
+      } catch (error) {
+      } finally {
+        btnReset(unsubscribeBtn);
+      }
+    });
+
+    const sendCustomerPush = async function () {
+      return $.ajax({
+        url: "index.php?route=extension/module/easywebpush/testcustomer",
+        type: "POST",
+        cache: false,
+        data: "",
+        dataType: "json",
+        beforeSend: function () {},
+        complete: function () {},
+        success: function (json) {
+          return json;
+        },
+        error: function (err) {
+          console.log(err);
+        },
+      });
+    };
+
+    runPushCheck();
+  });
+</script>
