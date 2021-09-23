@@ -8,26 +8,31 @@ class ModelExtensionModuleEasywebpush extends Model
       trigger_error(sprintf($this->language->get('error_php_version'), phpversion()));
       exit;
     }
-
+    
     // Check gmp extension
     if (!extension_loaded("gmp")) {
       trigger_error($this->language->get('error_gmp_not_loaded'));
       exit;
     }
-    $ROOT_DIR = str_replace('\\', '/', realpath(DIR_APPLICATION . '..'));
-    exec("which composer", $output);
-    if (!isset($output) || empty($output)) {
-      trigger_error($this->language->get('error_composer_not_found'));
-      exit;
-    }
 
-    if (file_exists($ROOT_DIR . "vendor/minishlink")) {
+    // Check&Execute composer require
+    $ROOT_DIR = realpath(DIR_APPLICATION . '..');
+    $isWindows = strpos(php_uname(), "Windows") !== false;
+		$command = $isWindows ? 'where composer' : 'which composer';
+    exec($command, $output, $exitcode);
+		if($exitcode !== 0 || empty($output)){
+			trigger_error($this->language->get('error_composer_not_found'));
+			exit;
+		}
+
+    $webpushPath = str_replace('\\','/', $ROOT_DIR . "/vendor/minishlink");
+    if (file_exists($webpushPath)) {
       return true;
     }
 
-    exec("cd " . $ROOT_DIR . " && composer require minishlink/web-push", $ioutput);
+    exec("cd " . $ROOT_DIR . " && composer require minishlink/web-push");
 
-    return !empty($output);
+    return file_exists($webpushPath);
   }
   public function moveSwjsToRoot()
   {
@@ -37,9 +42,10 @@ class ModelExtensionModuleEasywebpush extends Model
     if (file_exists($ROOT_SW) && is_file($ROOT_SW)) {
       return  true;
     }
-    $APP_DIR = str_replace('\\', '/', realpath(DIR_CATALOG . 'view/javascript/easywebpush/sw.js'));
-    if (file_exists($APP_DIR) && is_file($APP_DIR)) {
-      return  rename($APP_DIR, $ROOT_SW);
+    
+    $SW_DIR = str_replace('\\', '/', realpath(DIR_CATALOG . 'view/javascript/easywebpush/sw.js'));
+    if (file_exists($SW_DIR) && is_file($SW_DIR)) {
+      return  copy($SW_DIR, $ROOT_SW);
     }
 
     return false;

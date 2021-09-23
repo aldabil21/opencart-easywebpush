@@ -26,8 +26,8 @@ class ControllerExtensionModuleEasywebpush extends Controller
 
     // Edit template
     $template_buffer = $this->model_extension_module_easywebpush->getTemplateBuffer($route, $output);
-    $search = '<footer>';
-    $replace = $buttons . '<footer>';
+    $search = '<footer';
+    $replace = $buttons . '<footer';
     $output = str_replace($search, $replace, $template_buffer);
   }
 
