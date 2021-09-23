@@ -17,12 +17,11 @@ Since this package depends on [minishlink/web-push](https://github.com/web-push-
 #### Pros
 
 1. Using event system. And will continue all development using the event system.
-   ... Nothing more to mention now, untill start implementing some of the roadmap section.
+2. ... Nothing more to mention now, untill start implementing some of the roadmap section.
 
 #### Cons
 
-1. This package attemp to install required libs on installations, which may not work with some cheap hosting providers.
-2. Some hosting providers PHP setup may not have gmp extensions, and you may not have controll to install it.
+1. Some hosting providers PHP setup may not have gmp extension, and you may not have controll to install it.
 
 ###Roadmap
 

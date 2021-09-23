@@ -1,5 +1,5 @@
 <?php
-require(str_replace('\\', '/', realpath(DIR_SYSTEM . '../vendor/' . 'autoload.php')));
+require(str_replace('\\', '/', realpath(DIR_SYSTEM . 'library/easywebpush/autoload.php')));
 
 use Minishlink\WebPush\WebPush;
 use Minishlink\WebPush\Subscription;
@@ -13,7 +13,7 @@ class ControllerExtensionModuleEasywebpush extends Controller
   {
 
     $this->document->addScript('catalog/view/javascript/easywebpush/serviceworker.js');
-    $this->document->addLink('catalog/view/javascript/easywebpush/manifest.webmanifest', 'manifest');
+    $this->document->addLink('catalog/view/javascript/easywebpush/manifest.json', 'manifest');
   }
   // Event handle: catalog/controller/common/home/after
   public function eventHomeAfter(&$route, &$data, &$output)
@@ -154,7 +154,7 @@ class ControllerExtensionModuleEasywebpush extends Controller
       $webPush = new WebPush($pushAuth);
       foreach ($subs as $sub) {
         $subscription = Subscription::create($sub);
-        $res = $webPush->queueNotification(
+        $webPush->queueNotification(
           $subscription,
           json_encode($payload)
         );
