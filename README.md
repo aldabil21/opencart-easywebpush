@@ -1,8 +1,8 @@
-# Easy Webpush 📨
+# Easy Web Push 📨
 
-### Webpush Notification & Progressive Web App for OpenCart 3.X.X
+### Web Push Notification & Progressive Web App for OpenCart 3.X.X
 
-This is a basic setup, packaged based on OpenCart event system, providing webpush ability to OpenCart websites.
+This is a basic setup, packaged based on OpenCart event system, providing web push ability to OpenCart websites.
 
 > ###### ⚠️ For now this is just a setup for testing purpose, not any admin/dashboard interface been made.
 
