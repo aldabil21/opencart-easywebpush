@@ -1,0 +1,215 @@
+<div class="row">
+  <div class="col-sm-7">
+    <div class="form-group">
+      <label class="control-label" for="input-title">{{ entry_title }}</label>
+      <input
+        type="text"
+        name="title"
+        value="{{ title }}"
+        placeholder="{{ entry_title }}"
+        id="input-title"
+        class="form-control"
+      />
+      {% if errors.title %}
+      <div class="text-danger">{{ errors.title }}</div>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      <label class="control-label" for="input-message">{{
+        entry_message
+      }}</label>
+      <textarea
+        type="text"
+        name="message"
+        value="{{ message }}"
+        placeholder="{{ entry_message }}"
+        id="input-message"
+        class="form-control"
+        >{{ message }}</textarea
+      >
+      {% if errors.message %}
+      <div class="text-danger">{{ errors.message }}</div>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      <label class="control-label" for="input-icon">{{ entry_icon }}</label>
+      <div class="">
+        <a href="" id="thumb-icon" data-toggle="image" class="img-thumbnail">
+          <img src="{{ icon_preview }}" alt="" title="" />
+        </a>
+        <input type="hidden" name="icon" value="{{ icon }}" id="input-icon" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="control-label" for="input-image">{{ entry_image }}</label>
+      <div class="">
+        <a href="" id="thumb-image" data-toggle="image" class="img-thumbnail">
+          <img src="{{ image_preview }}" alt="" title="" />
+        </a>
+        <input
+          type="hidden"
+          name="image"
+          value="{{ image }}"
+          id="input-image"
+        />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="checkbox">
+        <label class="control-label" for="input-second_action">
+          <input
+            type="checkbox"
+            name="second_action"
+            id="input-second_action"
+            {%
+            if
+            second_action
+            %}
+            checked
+            {%
+            endif
+            %}
+          />
+          {{ entry_second_action }}
+        </label>
+      </div>
+
+      <div
+        class="row"
+        id="second_action"
+        {%
+        if
+        not
+        second_action
+        %}
+        style="display: none"
+        {%
+        endif
+        %}
+      >
+        <div class="col-sm-6">
+          <label class="control-label" for="input-action_title">{{
+            entry_action_title
+          }}</label>
+          <input
+            type="text"
+            name="action_title"
+            value="{{ action_title }}"
+            id="input-action_title"
+            class="form-control"
+          />
+          {% if errors.action_title %}
+          <div class="text-danger">{{ errors.action_title }}</div>
+          {% endif %}
+        </div>
+
+        <div class="col-sm-6">
+          <label class="control-label" for="input-action_link">{{
+            entry_action_link
+          }}</label>
+          <input
+            type="text"
+            name="action_link"
+            value="{{ action_link }}"
+            id="input-action_link"
+            class="form-control"
+          />
+          {% if errors.action_link %}
+          <div class="text-danger">{{ errors.action_link }}</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-5 sticky">
+    <h4>{{ text_preview }}</h4>
+    <div class="smartphone">
+      <div class="content push_preview">
+        <div class="media">
+          <div class="webpush_badge">
+            <img src="{{ badge }}" alt="badge" width="15" />
+            <span class="nowrap">{{ subject }}</span>
+          </div>
+          <div class="media-left">
+            <img
+              class="media-object"
+              src="{{ icon_preview }}"
+              id="webpush_icon"
+              alt="Icon"
+            />
+          </div>
+          <div class="media-body">
+            <p class="media-heading webpush_title nowrap">{{ title }}</p>
+            <p class="webpush_message">{{ message }}</p>
+          </div>
+          <img
+            class="media-object"
+            src="{{ image_preview }}"
+            id="webpush_image"
+            alt="Image"
+            {%
+            if
+            not
+            image
+            %}
+            style="display: none"
+            {%
+            endif
+            %}
+          />
+          <div class="media-footer">
+            <div>{{ text_close }}</div>
+            <div>
+              <span class="webpush_action_title">{{ action_title }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $(document).ready(function () {
+    $("input[name='second_action']").on("change", function () {
+      if ($(this).prop("checked")) {
+        $("#second_action").show();
+        $(".webpush_action_title").show("");
+      } else {
+        $("#second_action").hide();
+        $(".webpush_action_title").hide("");
+      }
+    });
+    $(
+      "input[name='title'], textarea[name='message'], input[name='action_title']"
+    ).on("change input", function () {
+      const name = $(this).prop("name");
+      $(`.webpush_${name}`).html($(this).val());
+    });
+    $("#thumb-icon img").on("load", function () {
+      const src = $(this).prop("src");
+      $("#webpush_icon").prop("src", src);
+    });
+    $("#thumb-image img").on("load", function () {
+      if ($("input[name='image']").val()) {
+        const src = $(this).prop("src");
+        $("#webpush_image").prop("src", src);
+        $("#webpush_image").show();
+        $("#webpush_image").css("display", "block");
+      }
+    });
+    $(document).on("click", "#button-clear", function () {
+      const name = $(this).parents(".form-group").find("input").prop("name");
+      if (name === "icon") {
+        $("#webpush_icon").prop("src", "{{ icon_preview }}");
+      } else {
+        $(`#webpush_${name}`).hide();
+      }
+    });
+  });
+</script>

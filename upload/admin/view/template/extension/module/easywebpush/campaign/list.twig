@@ -1,0 +1,205 @@
+{{ header }}{{ column_left }}
+<div class="" id="content">
+  <div class="page-header ewp container container-fluid">
+    <h1>{{ heading_title }}</h1>
+    <ul class="breadcrumb">
+      {% for breadcrumb in breadcrumbs %}
+      <li>
+        <a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div class="ewp container container-fluid">
+    {% if success %}
+    <div class="alert alert-success alert-dismissible">
+      <i class="fa fa-check-circle"></i>
+      {{ success }}
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+    {% endif %} {% if error_warning %}
+    <div class="alert alert-danger alert-dismissible">
+      <i class="fa fa-exclamation-circle"></i>
+      {{ error_warning }}
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+    {% endif %}
+    <div class="row">
+      {# Filters #}
+      <div id="filter-subscribers" class="col-md-3 col-md-push-9 col-sm-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">
+              <i class="fa fa-filter"></i> {{ text_filter }}
+            </h3>
+          </div>
+          <div class="panel-body">
+            <div class="form-group">
+              <label class="control-label" for="input-name">{{
+                label_name
+              }}</label>
+              <input
+                type="text"
+                name="name"
+                value="{{ name }}"
+                placeholder="{{ label_name }}"
+                id="input-name"
+                class="form-control"
+              />
+            </div>
+            <div class="form-group text-right">
+              <button type="button" id="button-filter" class="btn btn-default">
+                <i class="fa fa-filter"></i> {{ button_filter }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      {# List #}
+      <div class="col-md-9 col-md-pull-3 col-sm-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">
+              <i class="fa fa-list"></i>
+              {{ text_campaigns_list }}
+            </h3>
+          </div>
+          <div class="panel-body">
+            <div class="table-responsive">
+              <form
+                action="{{ delete }}"
+                method="post"
+                enctype="multipart/form-data"
+                id="form-subscribers"
+              >
+                <div class="text-right" style="padding-bottom: 1rem">
+                  <a
+                    aria-label="{{ button_create_campaign }}"
+                    class="btn btn-primary"
+                    href="{{ new_campaign }}"
+                  >
+                    {{ button_create_campaign }}
+                    <i class="fa fa-paper-plane-o" aria-hidden="true"></i>
+                  </a>
+                  <button
+                    type="button"
+                    data-toggle="tooltip"
+                    title="{{ button_delete }}"
+                    class="btn btn-danger"
+                    onclick="onDelete()"
+                  >
+                    <i class="fa fa-trash-o"></i>
+                  </button>
+                </div>
+                <table class="table table-bordered table-hover">
+                  <thead>
+                    <tr>
+                      <td style="width: 1px" class="text-center">
+                        <input
+                          class="webpush_select"
+                          type="checkbox"
+                          onclick="$('input[name*=\'selected\']').prop('checked', this.checked);"
+                        />
+                      </td>
+                      <td class="text-left">
+                        {{ label_name }}
+                      </td>
+                      <td class="text-left">
+                        {{ label_total }}
+                      </td>
+                      <td class="text-left">
+                        {{ label_success }}
+                      </td>
+                      <td class="text-left">
+                        {{ label_failed }}
+                      </td>
+                      <td class="text-left">
+                        {{ label_opened }}
+                      </td>
+                      <td class="text-left">
+                        {{ label_date_added }}
+                      </td>
+                      <td class="text-right"></td>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% if campaigns %} {% for campaign in campaigns %}
+                    <tr>
+                      <td class="text-center">
+                        {% if campaign.campaign_id in selected %}
+                        <input
+                          class="webpush_select"
+                          type="checkbox"
+                          name="selected[]"
+                          value="{{ campaign.campaign_id }}"
+                          checked="checked"
+                        />
+                        {% else %}
+                        <input
+                          class="webpush_select"
+                          type="checkbox"
+                          name="selected[]"
+                          value="{{ campaign.campaign_id }}"
+                        />
+                        {% endif %}
+                      </td>
+                      <td class="text-left">{{ campaign.name }}</td>
+                      <td class="text-left">{{ campaign.total }}</td>
+                      <td class="text-left">{{ campaign.success }}</td>
+                      <td class="text-left">{{ campaign.failed }}</td>
+                      <td class="text-left">{{ campaign.opened }}</td>
+                      <td class="text-left">{{ campaign.date_added }}</td>
+                      <td class="text-center">
+                        <a class="btn btn-primary" href="{{ campaign.view }}">
+                          <i class="fa fa-eye" aria-hidden="true"></i>
+                        </a>
+                      </td>
+                    </tr>
+                    {% endfor %} {% else %}
+                    <tr>
+                      <td class="text-center" colspan="7">
+                        <i
+                          class="fa fa-paper-plane fa-5x"
+                          style="padding: 2rem 1rem"
+                          aria-hidden="true"
+                        ></i>
+                        <p>{{ text_no_campaigns }}</p>
+                      </td>
+                    </tr>
+                    {% endif %}
+                  </tbody>
+                </table>
+              </form>
+            </div>
+          </div>
+          <div class="panel-footer">
+            <div class="">{{ results }}</div>
+            <div class="">{{ pagination }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{{ footer }}
+
+<script>
+  function onDelete() {
+    const agree = confirm("{{ text_confirm }}");
+    if (agree) {
+      $("#form-subscribers").submit();
+    }
+  }
+  $(document).ready(function () {
+    $("#button-filter").on("click", function () {
+      url =
+        "index.php?route=extension/module/easywebpush/campaign&user_token={{ user_token }}";
+      var name = $("input[name='name']").val();
+      if (name) {
+        url += "&name=" + encodeURIComponent(name);
+      }
+      location = url;
+    });
+  });
+</script>

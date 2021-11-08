@@ -4,11 +4,12 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitf8ea440d754a5327a2ac4b799f598868
+class ComposerStaticInitb99e5c4017b351b9a10213f541ee577c
 {
     public static $files = array (
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
         'c964ee0ededf28c96ebd9db5099ef910' => __DIR__ . '/..' . '/guzzlehttp/promises/src/functions_include.php',
+        '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
         '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
     );
 
@@ -21,6 +22,9 @@ class ComposerStaticInitf8ea440d754a5327a2ac4b799f598868
         'M' => 
         array (
             'Minishlink\\WebPush\\' => 19,
+            'MaxMind\\WebService\\' => 19,
+            'MaxMind\\Exception\\' => 18,
+            'MaxMind\\Db\\' => 11,
         ),
         'J' => 
         array (
@@ -35,10 +39,15 @@ class ComposerStaticInitf8ea440d754a5327a2ac4b799f598868
             'GuzzleHttp\\Psr7\\' => 16,
             'GuzzleHttp\\Promise\\' => 19,
             'GuzzleHttp\\' => 11,
+            'GeoIp2\\' => 7,
         ),
         'F' => 
         array (
             'FG\\' => 3,
+        ),
+        'C' => 
+        array (
+            'Composer\\CaBundle\\' => 18,
         ),
         'B' => 
         array (
@@ -60,6 +69,18 @@ class ComposerStaticInitf8ea440d754a5327a2ac4b799f598868
         'Minishlink\\WebPush\\' => 
         array (
             0 => __DIR__ . '/..' . '/minishlink/web-push/src',
+        ),
+        'MaxMind\\WebService\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/maxmind/web-service-common/src/WebService',
+        ),
+        'MaxMind\\Exception\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/maxmind/web-service-common/src/Exception',
+        ),
+        'MaxMind\\Db\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/maxmind-db/reader/src/MaxMind/Db',
         ),
         'Jose\\Component\\Signature\\Algorithm\\' => 
         array (
@@ -93,9 +114,17 @@ class ComposerStaticInitf8ea440d754a5327a2ac4b799f598868
         array (
             0 => __DIR__ . '/..' . '/guzzlehttp/guzzle/src',
         ),
+        'GeoIp2\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/geoip2/geoip2/src',
+        ),
         'FG\\' => 
         array (
             0 => __DIR__ . '/..' . '/fgrosse/phpasn1/lib',
+        ),
+        'Composer\\CaBundle\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/composer/ca-bundle/src',
         ),
         'Brick\\Math\\' => 
         array (
@@ -114,9 +143,9 @@ class ComposerStaticInitf8ea440d754a5327a2ac4b799f598868
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitf8ea440d754a5327a2ac4b799f598868::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitf8ea440d754a5327a2ac4b799f598868::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitf8ea440d754a5327a2ac4b799f598868::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitb99e5c4017b351b9a10213f541ee577c::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitb99e5c4017b351b9a10213f541ee577c::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitb99e5c4017b351b9a10213f541ee577c::$classMap;
 
         }, null, ClassLoader::class);
     }

@@ -3,9 +3,26 @@ class ModelExtensionModuleEasywebpush extends Model
 {
   public function addSubscription($data)
   {
-    $customer_id = $this->customer->getId();
-    $session_id = $this->customer->isLogged() ? "" : $this->session->getId();
-    $this->db->query("INSERT INTO " . DB_PREFIX . "easywebpush SET customer_id = '" . (int)$customer_id . "', session_id = '" . $this->db->escape($session_id) . "', endpoint = '" . $this->db->escape($data['endpoint']) . "', auth = '" . $this->db->escape($data['keys']['auth']) . "', p256dh = '" . $this->db->escape($data['keys']['p256dh']) . "', date_added = NOW() ");
+    $subscription = $data['subscription'];
+    // Some cases of session change/manual clear data
+    // which causing duplicate subscription of same endpoint
+    // So clear endpoint first
+    $this->deleteSubscription($this->db->escape($subscription['endpoint']));
+
+    $sql = "INSERT INTO ";
+    $sql .=  DB_PREFIX . "easywebpush_subscription SET ";
+    $sql .= "customer_id = '" . (int)$data['customer_id'] . "'";
+    $sql .= ", session_id = '" . $this->db->escape($data['session_id']) . "'";
+    $sql .= ", endpoint = '" . $this->db->escape($subscription['endpoint']) . "'";
+    $sql .= ", auth = '" . $this->db->escape($subscription['keys']['auth']) . "'";
+    $sql .= ", p256dh = '" . $this->db->escape($subscription['keys']['p256dh']) . "'";
+    $sql .= ", device = '" . $this->db->escape($data['device']) . "'";
+    $sql .= ", ip = '" . $this->db->escape($data['ip']) . "'";
+    $sql .= ", country_code = '" . $this->db->escape($data['country_code']) . "'";
+    $sql .= ", country_name = '" . $this->db->escape($data['country_name']) . "'";
+    $sql .= ", date_added = NOW()";
+
+    $this->db->query($sql);
 
     $saved = $this->db->getLastId();
 
@@ -13,18 +30,23 @@ class ModelExtensionModuleEasywebpush extends Model
   }
   public function deleteSubscription($endpoint)
   {
-    $customer_id = $this->customer->getId();
-    $deleted = $this->db->query("DELETE FROM " . DB_PREFIX . "easywebpush WHERE endpoint = '" . $endpoint . "'");
+    $sql = "DELETE FROM " . DB_PREFIX . "easywebpush_subscription WHERE";
+    $sql .= " endpoint = '" . $endpoint . "'";
+    $deleted = $this->db->query($sql);
     return $deleted;
   }
-  public function getCustomerSubscriptions()
+  public function getCustomerSubscriptions($id = 0)
   {
-    $sql = "SELECT * from " . DB_PREFIX . "easywebpush WHERE ";
-    if ($this->customer->isLogged()) {
+    $sql = "SELECT * FROM " . DB_PREFIX . "easywebpush_subscription WHERE ";
+    if ($id) {
+      $sql .= " customer_id = '" . (int)$id . "'";
+    } elseif ($this->customer->isLogged()) {
       $sql .= " customer_id = '" . (int)$this->customer->getId() . "'";
     } else {
       $sql .= " session_id = '" . $this->session->getId() . "'";
     }
+    $sql .= " GROUP BY endpoint";
+
     $query = $this->db->query($sql);
     $subscriptions = array();
     if ($query->rows) {
@@ -44,20 +66,20 @@ class ModelExtensionModuleEasywebpush extends Model
   }
   public function isSubscribed($endpoint)
   {
-    $sql = "SELECT DISTINCT * FROM " . DB_PREFIX . "easywebpush WHERE ";
+    $sql = "SELECT DISTINCT * FROM " . DB_PREFIX . "easywebpush_subscription WHERE ";
     if ($this->customer->isLogged()) {
-      $sql .= " customer_id = '" . (int)$this->customer->getId() . "'";
+      $sql .= " customer_id = '" . (int)$this->customer->getId() . "' AND";
     } else {
-      $sql .= " session_id = '" . $this->session->getId() . "'";
+      // $sql .= " session_id = '" . $this->session->getId() . "'";
     }
-    $sql .= " AND endpoint = '" . $endpoint . "' ";
+    $sql .= " endpoint = '" . $endpoint . "' ";
 
     $query = $this->db->query($sql);
     return sizeof($query->rows) > 0;
   }
   public function getAdminsSubscriptions()
   {
-    $sql = "SELECT * from " . DB_PREFIX . "easywebpush WHERE admin_id != '0' ";
+    $sql = "SELECT * FROM " . DB_PREFIX . "easywebpush_subscription WHERE admin_id > 0 ";
     $query = $this->db->query($sql);
     $subscriptions = array();
     if ($query->rows) {
@@ -76,7 +98,15 @@ class ModelExtensionModuleEasywebpush extends Model
     return $subscriptions;
   }
 
-
+  public function updateSubscriptionIdsPostAuth($session_id, $customer_id)
+  {
+    $sql = "UPDATE " . DB_PREFIX . "easywebpush_subscription SET";
+    $sql .= " customer_id = '" . (int)$customer_id . "'";
+    //TODO: Should clear session?
+    $sql .= ", session_id = " . '""' . "";
+    $sql .= " WHERE session_id = '" . $session_id . "'";
+    $this->db->query($sql);
+  }
   public function getTemplateBuffer($route, $template_code = '')
   {
     if ($template_code) {
@@ -97,7 +127,13 @@ class ModelExtensionModuleEasywebpush extends Model
       trigger_error($this->language->get('error_render_template_not_found'));
     }
   }
-
+  public function reportopen($id)
+  {
+    $sql = "INSERT INTO " . DB_PREFIX . "easywebpush_report SET";
+    $sql .= " campaign_id = '" . $id . "', subscriber_id = '" . (int)$this->customer->getId() . "',";
+    $sql .= " opened = '1'";
+    $this->db->query($sql);
+  }
   public function getModifactionIfExist(String $theme_dir)
   {
     // return a PHP file possibly modified by OpenCart's system/storage/modification

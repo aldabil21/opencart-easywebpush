@@ -3,58 +3,149 @@ require(str_replace('\\', '/', realpath(DIR_SYSTEM . 'library/easywebpush/autolo
 
 use Minishlink\WebPush\WebPush;
 use Minishlink\WebPush\Subscription;
+use GeoIp2\Database\Reader;
 
 class ControllerExtensionModuleEasywebpush extends Controller
 {
   private $error = array();
 
-  // Event handle: catalog/controller/common/footer/before
+  // Event handle: catalog/controller/common/header/before
   public function addGlobalScripts()
   {
-
-    $this->document->addScript('catalog/view/javascript/easywebpush/serviceworker.js');
-    $this->document->addLink('catalog/view/javascript/easywebpush/manifest.json', 'manifest');
+    $enabled = $this->isEnabled();
+    if ($enabled) {
+      $this->document->addLink('manifest.json', 'manifest');
+    }
   }
-  // Event handle: catalog/controller/common/home/after
-  public function eventHomeAfter(&$route, &$data, &$output)
+  // Event handle: view/common/footer/after
+  public function renderWebpush(&$route, &$data, &$output)
   {
+    $enabled = $this->isEnabled();
+    if ($enabled) {
+      $this->load->language("extension/module/easywebpush");
+      $this->load->model('tool/image');
+      $key = 'module_easywebpush_';
 
-    $this->load->model('extension/module/easywebpush');
-    $this->load->language('extension/module/easywebpush');
+      $data = array();
+      $data['vapid_public'] = $this->config->get($key . 'vapid_public');
+      $data['bell_status'] = $this->config->get($key . 'subscription_bell_status');
+      $data['autoprompt_status'] = $this->config->get($key . 'subscription_autoprompt_status');
+      $data['autoprompt_delay'] = $this->config->get($key . 'autoprompt_delay') * 1000;
+      $data['autoprompt_reinit'] = $this->config->get($key . 'autoprompt_reinit');
+      $data['primary_color'] = $this->config->get($key . 'primary_color');
 
-    $buttons = $this->load->view('extension/module/easywebpush/test_buttons', $data);
+      $text = $this->config->get($key . 'prompt_text');
+      $lng = $this->config->get('config_language_id');
+      $data['prompt_text'] = $text[$lng]['text'];
 
-    // Edit template
-    $template_buffer = $this->model_extension_module_easywebpush->getTemplateBuffer($route, $output);
-    $search = '<footer';
-    $replace = $buttons . '<footer';
-    $output = str_replace($search, $replace, $template_buffer);
+      $logo = $this->config->get($key . 'prompt_logo');
+      $fallback = $this->config->get('config_logo');
+      if (isset($logo) && is_file(DIR_IMAGE . $logo)) {
+        $data['prompt_logo'] = $this->model_tool_image->resize($logo, 100, 100);
+      } elseif ($fallback && is_file(DIR_IMAGE . $fallback)) {
+        $data['prompt_logo'] = $this->model_tool_image->resize($fallback, 100, 100);
+      } else {
+        $data['prompt_logo'] = $this->model_tool_image->resize('no_image.png', 100, 100);
+      }
+
+      $buttons = $this->load->view('extension/module/easywebpush/webpush', $data);
+      $search = '</footer>';
+      $replace = $buttons . '</footer>';
+      $output = str_replace($search, $replace, $output);
+    }
   }
+  // Event handle: catalog/model/account/customer/deleteLoginAttempts/after
+  public function updateSubscriptionIdsPostLogin()
+  {
+    $session_id = $this->session->getId();
+    $customer_id = $this->customer->getId();
+    if ($customer_id && $session_id) {
+      $this->load->model('extension/module/easywebpush');
+      $this->model_extension_module_easywebpush->updateSubscriptionIdsPostAuth($session_id, $customer_id);
+    }
+  }
+  // Event handle: catalog/model/account/customer/addCustomer/after
+  public function updateSubscriptionIdsPostRegister(&$route, &$data, &$output)
+  {
+    $session_id = $this->session->getId();
+    $customer_id = $output;
+    if ($customer_id && $session_id) {
+      $this->load->model('extension/module/easywebpush');
+      $this->model_extension_module_easywebpush->updateSubscriptionIdsPostAuth($session_id, $customer_id);
 
+      // Notify admin
+      $admin_events = $this->config->get("module_easywebpush_events_for_admin");
+      if (in_array("register", $admin_events)) {
+        $this->load->language("extension/module/easywebpush");
+        $name = $data[0]['firstname'] . " " . $data[0]['lastname'];
+        $pushData = array(
+          'title'         => $this->language->get("event_registered_title"),
+          'message'       => sprintf($this->language->get("event_registered_subtitle"), $name),
+          'action_title'  => $this->language->get("event_registered_action"),
+          'action_link'   => HTTPS_SERVER . "admin/index.php?route=customer/customer&user_token=",
+          'admin'         => true
+        );
+        $this->notify($pushData);
+      }
+    }
+  }
   public function subscribe()
   {
-    $this->load->model('extension/module/easywebpush');
     $method = $this->request->server['REQUEST_METHOD'];
-    $subscription_detail = json_decode(html_entity_decode($this->request->post['subscription']), true);
-    $result = array();
+    $subscription = json_decode(html_entity_decode($this->request->post['subscription']), true);
+    if ($method == 'POST' && $subscription['endpoint']) {
+      $this->load->language('extension/module/easywebpush');
+      $this->load->model('extension/module/easywebpush');
+      $customer_id = $this->customer->getId();
+      $session_id = $this->customer->isLogged() ? "" : $this->session->getId();
 
-    if ($method == 'POST') {
-      if (!$subscription_detail['endpoint']) {
-        $result['error'] = 'Error: Faild to subscribe. please refresh and try again';
+      // Detect Device
+      require_once(str_replace('\\', '/', realpath(DIR_SYSTEM . 'library/easywebpush/Mobile_Detect.php')));
+      $detect = new Mobile_Detect;
+      $device = 'Desktop';
+      if ($detect->isTablet()) {
+        $device = "Tablet";
+      } elseif ($detect->isMobile()) {
+        $device = "Mobile";
       }
-      if ($subscription_detail['endpoint']) {
-        $saved = $this->model_extension_module_easywebpush->addSubscription($subscription_detail);
-        if ($saved) {
-          $pushData = array(
-            'title' => "Subscription Success",
-            'msg' => "Congratulations, you've got it right!",
-          );
-          $this->notify($pushData);
-          $result['success'] = 'Successfully Subscribed';
-        } else {
-          $result['error'] = 'Error Saving Subscription: please refresh and try again';
-        }
+
+      // Detect country
+      $ip = $this->request->server['REMOTE_ADDR'];
+      $geoip = new Reader(str_replace('\\', '/', realpath(DIR_SYSTEM . 'library/easywebpush/GeoLite2-Country.mmdb')));
+      $country_code = '';
+      $country_name = '';
+      try {
+        $geo = $geoip->country($ip);
+        $country_code = $geo->country->isoCode;
+        $country_name = $geo->country->name;
+      } catch (Exception $e) {
+        $country_code = '';
+        $country_name = '';
       }
+      $data = array(
+        'subscription' => $subscription,
+        'session_id'   => $session_id,
+        'customer_id'  => $customer_id,
+        'device'       => $device,
+        'ip'           => $ip,
+        'country_code' => $country_code,
+        'country_name' => $country_name
+      );
+      $saved = $this->model_extension_module_easywebpush->addSubscription($data);
+
+      $result = array();
+      if ($saved) {
+        $pushData = array(
+          'title' => $this->language->get("push_subscription_success_title"),
+          'message' => $this->language->get("push_subscription_success_msg"),
+        );
+        $this->notify($pushData);
+        $result['success'] = $this->language->get("text_subscription_success");
+      } else {
+        $result['error'] = $this->language->get("error_subscription_failed");
+      }
+    } else {
+      $result['error'] = $this->language->get("error_subscription_failed");
     }
 
     $this->response->addHeader('Content-Type: application/json');
@@ -62,22 +153,21 @@ class ControllerExtensionModuleEasywebpush extends Controller
   }
   public function unsubscribe()
   {
+    $this->load->language('extension/module/easywebpush');
     $this->load->model('extension/module/easywebpush');
     $method = $this->request->server['REQUEST_METHOD'];
-    $subscription_detail = json_decode(html_entity_decode($this->request->post['subscription']), true);
+    $subscription = json_decode(html_entity_decode($this->request->post['subscription']), true);
     $result = array();
 
-    if ($method == 'POST') {
-      if ($subscription_detail['endpoint']) {
-        $deleted = $this->model_extension_module_easywebpush->deleteSubscription($subscription_detail['endpoint']);
-        if ($deleted) {
-          $result['success'] = 'Successfully unsbscribed. You will not recieve notifications anymore';
-        } else {
-          $result['error'] = 'Error Deleting Subscription: please refresh and try again';
-        }
+    if ($method == 'POST' && $subscription['endpoint']) {
+      $deleted = $this->model_extension_module_easywebpush->deleteSubscription($subscription['endpoint']);
+      if ($deleted) {
+        $result['success'] = $this->language->get('text_unsubscription_success');
       } else {
-        $result['error'] = 'Error: Faild to unsubscribe. please refresh and try again';
+        $result['error'] = $this->language->get('text_unsubscription_error');
       }
+    } else {
+      $result['error'] = $this->language->get('text_unsubscription_error');
     }
 
     $this->response->addHeader('Content-Type: application/json');
@@ -88,186 +178,149 @@ class ControllerExtensionModuleEasywebpush extends Controller
     $this->load->model('extension/module/easywebpush');
     $method = $this->request->server['REQUEST_METHOD'];
     $subscription_detail = json_decode(html_entity_decode($this->request->post['subscription']), true);
-    $result = array();
+    $subscribed = false;
 
-    if ($method == 'POST') {
-      if ($subscription_detail['endpoint']) {
-        $exist = $this->model_extension_module_easywebpush->isSubscribed($subscription_detail['endpoint']);
-        if (!$exist) {
-          $result['error'] = 'Subscription not found';
-        } else {
-          $result['success'] = 'Subscription found';
-        }
-      } else {
-        $result['error'] = 'Error: Faild to subscribe. please refresh and try again';
+    if ($method == 'POST' && $subscription_detail['endpoint']) {
+      $exist = $this->model_extension_module_easywebpush->isSubscribed($subscription_detail['endpoint']);
+      if ($exist) {
+        $subscribed = true;
       }
     }
 
     $this->response->addHeader('Content-Type: application/json');
-    $this->response->setOutput(json_encode($result));
+    $this->response->setOutput(json_encode($subscribed));
   }
   public function notify($push)
   {
-    // echo"<pre>";print_r($push);die;
-    //Webpush content
-    $close_action = array(
-      'action' => "close",
-      'title' => "Close",
-      // 'icon'=> "images/cancel.png"
-    );
-    $title = isset($push['title']) ? $push['title'] : $this->config->get('config_name');
-    $subject = isset($push['subject']) ? $push['subject'] : $this->config->get('site_ssl');
-    $body = $push['msg'];
-    $icon = isset($push['icon']) ? $push['icon'] : "https://picsum.photos/300/300"; //change your fallback icon path accordingly
-    $badge = isset($push['badge']) ? $push['badge'] : "https://picsum.photos/300/300"; //change your fallback badge accordingly
-    $vibrate = isset($push['vibrate']) ? $push['vibrate'] : [100, 50, 100]; //I think this is deprecated?
-    $data = isset($push['data']) ? $push['data'] : '';
-    $dir = isset($push['dir']) ? $push['dir'] : 'auto';
-    $image = isset($push['image']) ? $push['image'] : '';
-    $action[] = isset($push['action']) ? $push['action'] : null;
-    $action[] = $close_action;
-    $final_actions = array_values(array_filter($action));
-    $payload = array(
-      'title' => $title,
-      'body' => $body,
-      'icon' => $icon,
-      'badge' => $badge,
-      'vibrate' => $vibrate,
-      'data' => $data,
-      'dir' => $dir,
-      'image' => $image,
-      'actions' => $final_actions,
-    );
+    $result = array();
+    if ($this->config->get('module_easywebpush_status')) {
+      $this->load->model('extension/module/easywebpush');
+      $this->load->model('tool/image');
 
-    //Get user subscriptions
-    $this->load->model('extension/module/easywebpush');
-    $subs = $this->model_extension_module_easywebpush->getCustomerSubscriptions();
-    $notifications = array();
-    if ($subs) {
-      $pushAuth = array(
-        'VAPID' => array(
-          'subject' => $subject,
-          'publicKey' => "BI5PjOjLjyaQSOsad3tuzM8c5DsxN7GwYn4GeJk-Kig3WVFSfBtOm5E2_l-Y2GaGsvuC0qM7KaalgJse8HmRH78",
-          'privateKey' => "dWuwTktY61t64vscDgtl5VYA4pgFp0fnVIdVuf0Lt60",
-        ),
-      );
-      $webPush = new WebPush($pushAuth);
-      foreach ($subs as $sub) {
-        $subscription = Subscription::create($sub);
-        $webPush->queueNotification(
-          $subscription,
-          json_encode($payload)
-        );
+      //Settings values
+      $publicKey = $this->config->get("module_easywebpush_vapid_public");
+      $privateKey = $this->config->get("module_easywebpush_vapid_private");
+      $default_badge = $this->model_tool_image->resize($this->config->get("config_icon"), 100, 100);
+      $prompt_logo = $this->config->get('module_easywebpush_prompt_logo');
+      $default_icon_path = $prompt_logo ? $prompt_logo : $this->config->get("config_logo");
+      if (isset($push['icon']) && $push['icon']) {
+        $icon = $this->model_tool_image->resize($push['icon'], 256, 256);
+      } else {
+        $icon = $this->model_tool_image->resize($default_icon_path, 256, 256);
       }
-      // handle eventual errors here, and remove the subscription from your server if it is expired
-      foreach ($webPush->flush() as $report) {
-        $endpoint = $report->getEndpoint();
-        if ($report->isSuccess()) {
-          $result['result'] = "[v] Message sent successfully for subscription {$endpoint}.";
-        } else {
-          $result['result'] = "[x] Message failed to sent for subscription {$endpoint}: {$report->getReason()}";
+      $badge = $default_badge;
+      $subject = HTTPS_SERVER;
+      $vibrate = [100, 50, 100];
+      $dir = $this->language->get('direction');
+
+      // Msg content
+      $title = $push['title'];
+      $body  =  $push['message'];
+      $image =  '';
+      if (isset($push['image']) && $push['image']) {
+        list($width) = getimagesize(DIR_IMAGE . $push['image']);
+        $image = $this->model_tool_image->resize($push['image'], $width, $width / 2);
+      }
+      $data =  $push['data'] ?? array();
+
+      // Actions
+      $close_action = array(
+        'action' => "close",
+        'title' => $this->language->get("text_close")
+      );
+      $action[] = $close_action;
+      $action_title = isset($push['action_title']) ? $push['action_title'] : "";
+      $action_link = isset($push['action_link']) ? $push['action_link'] : "";
+      if ($action_title && $action_link) {
+        $second_action = array(
+          'action' => "action",
+          'title'  => $action_title
+        );
+        $action[] = $second_action;
+        $data['link'] = $action_link;
+      }
+      $final_actions = array_values(array_filter($action));
+
+      //Get subscriptions
+      $subscriptions = array();
+      if (isset($push['admin']) && $push['admin']) {
+        $subscriptions = $this->model_extension_module_easywebpush->getAdminsSubscriptions();
+      } else {
+        $cid = isset($push['customer_id']) && $push['customer_id'] ? $push['customer_id'] : 0;
+        $subscriptions = $this->model_extension_module_easywebpush->getCustomerSubscriptions($cid);
+      }
+
+      if (count($subscriptions) > 0) {
+        // Init push
+        $pushAuth = array(
+          'VAPID' => array(
+            'subject' => $subject,
+            'publicKey' => $publicKey,
+            'privateKey' => $privateKey,
+          ),
+        );
+        $payload = array(
+          'title'   => $title,
+          'body'    => $body,
+          'icon'    => $icon,
+          'badge'   => $badge,
+          'vibrate' => $vibrate,
+          'data'    => $data,
+          'dir'     => $dir,
+          'image'   => $image,
+          'actions' => $final_actions,
+        );
+        $webPush = new WebPush($pushAuth);
+        foreach ($subscriptions as $sub) {
+          $subscription = Subscription::create($sub);
+          $webPush->queueNotification(
+            $subscription,
+            json_encode($payload)
+          );
+        }
+        // handle eventual errors here, and remove the subscription from your server if it is expired
+        foreach ($webPush->flush() as $report) {
+          $endpoint = $report->getEndpoint();
+          if ($report->isSuccess()) {
+            $result['result'] = "[v] Message sent successfully for subscription {$endpoint}.";
+          } else {
+            $err = "[x] {$report->getReason()}";
+            $result['result'] = $err;
+            $this->log->write("[Web Push]: " . $err);
+          }
         }
       }
     }
 
     return $result;
-    // $this->response->addHeader('Content-Type: application/json');
-    // $this->response->setOutput(json_encode($result));
   }
-  public function notifyAdmin($push)
+  public function reportopen()
   {
-
-    //Webpush content
-    $close_action = array(
-      'action' => "close",
-      'title' => "Close",
-      // 'icon'=> "images/cancel.png"
-    );
-    $title = isset($push['title']) ? $push['title'] : $this->config->get('config_name');
-    $body = $push['msg'];
-    $icon = isset($push['icon']) ? $push['icon'] : "https://picsum.photos/300/300";
-    $badge = isset($push['badge']) ? $push['badge'] : "https://picsum.photos/300/300";
-    $vibrate = isset($push['vibrate']) ? $push['vibrate'] : [100, 50, 100];
-    $data = isset($push['data']) ? $push['data'] : '';
-    $dir = isset($push['dir']) ? $push['dir'] : 'auto';
-    $image = isset($push['image']) ? $push['image'] : '';
-    $action[] = isset($push['action']) ? $push['action'] : null;
-    $action[] = $close_action;
-    $final_actions = array_values(array_filter($action));
-    $payload = array(
-      'title' => $title,
-      'body' => $body,
-      'icon' => $icon,
-      'badge' => $badge,
-      'vibrate' => $vibrate,
-      'data' => $data,
-      'dir' => $dir,
-      'image' => $image,
-      'actions' => $final_actions,
-    );
-
-    //Get admins subscriptions
-    $this->load->model('extension/module/easywebpush');
-    $subs = $this->model_extension_module_easywebpush->getAdminsSubscriptions();
-    $result = array();
-    // if($subs){
-    //     $pushAuth = array(
-    //         'VAPID' => array(
-    //         'subject' => $this->config->get('site_ssl'),
-    //         'publicKey' => PUSH_PUBLIC,
-    //         'privateKey' => PUSH_PRIVATE,
-    //         ),
-    //     );
-    //     $webPush = new WebPush($pushAuth);
-    //     foreach($subs as $sub){
-    //         $subscription = Subscription::create($sub);
-    //         $res = $webPush->sendNotification(
-    //             $subscription,
-    //             json_encode($payload)
-    //         );
-    //     }
-    //     // handle eventual errors here, and remove the subscription from your server if it is expired
-    //     foreach ($webPush->flush() as $report) {
-    //         $endpoint = $report->getRequest()->getUri()->__toString();
-
-    //         if ($report->isSuccess()) {
-    //             $result['result'] = "[v] Message sent successfully for subscription {$endpoint}.";
-    //         } else {
-    //             $result['result'] = "[x] Message failed to sent for subscription {$endpoint}: {$report->getReason()}";
-    //         }
-    //     }
-    // }
-
-    $this->response->addHeader('Content-Type: application/json');
-    $this->response->setOutput(json_encode($result));
+    $campaign_id = isset($this->request->get['campaign_id']) ? $this->request->get['campaign_id'] : null;
+    if ($campaign_id) {
+      $this->load->model('extension/module/easywebpush');
+      $this->model_extension_module_easywebpush->reportopen($campaign_id);
+    }
   }
+  protected function isEnabled()
+  {
+    $key = 'module_easywebpush_';
+    $enabled = $this->config->get($key . 'status');
+    $routes = $this->config->get($key . 'prompt_routes');
+    $current_route = isset($this->request->get['route']) ? $this->request->get['route'] : 'common/home';
+    $has_wildcard = false;
+    foreach ($routes as $route) {
+      $curr = explode("/", $current_route);
+      $route_split = explode("/", $route);
+      $is_wildcard = $route_split[1] === '*';
+      $same_root = $curr[0] === $route_split[0];
+      if ($same_root && $is_wildcard) {
+        $has_wildcard = true;
+        break;
+      }
+    }
+    $route_included = in_array($current_route, $routes) || $has_wildcard;
 
-  //Just test
-  public function testcustomer()
-  {
-    $pushData = array(
-      'title' => "Hello Customer", //(optional: see fallback in webpush controller)
-      'msg' => "Push body for customer push", //(required)
-      'icon' => 'https://picsum.photos/300/300', //(optional: see fallback in webpush controller)
-      'badge' => 'https://picsum.photos/300/300', //(optional: see fallback in webpush controller) 
-      'vibrate' => [100, 50, 100], //(optional: see fallback in webpush controller)
-      'data' => 'https://twitter.com/aldabil21', //(optional: see fallback in webpush controller)
-      'dir' => 'ltr', //(optional: see fallback in webpush controller)
-      'image' => 'https://picsum.photos/300/300', //(optional: see fallback in webpush controller)
-      'action' => array('action' => 'action', 'title' => 'My Twitter')
-    );
-    $result = $this->notify($pushData);
-    $this->response->addHeader('Content-Type: application/json');
-    $this->response->setOutput(json_encode($result));
-  }
-  public function testadmin()
-  {
-    $pushData = array(
-      'title' => "Hello Admin", //(optional: see fallback in webpush controller)
-      'msg' => "Push body for admin push", //(required)
-      'data' => '/admin', //(optional: see fallback in webpush controller)
-      'action' => array('action' => 'action', 'title' => 'Admin Panel')
-    );
-    $this->notifyAdmin($pushData);
+    return $enabled && $route_included;
   }
 }

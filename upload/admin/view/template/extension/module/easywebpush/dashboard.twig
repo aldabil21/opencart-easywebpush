@@ -1,0 +1,189 @@
+{{ header }}{{ column_left }}
+<div class="" id="content">
+  <div class="page-header container container-fluid">
+    <div>
+      <h1>{{ heading_title }}</h1>
+      <ul class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+        <li>
+          <a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="ewp container container-fluid">
+    {{ subscribe }}
+    {# Rates #}
+    <div class="row">
+      <div class="col-md-4 col-sm-6 col-xs-6">
+        <span class="label label-primary stat_label">
+          <i class="fa fa-paper-plane" aria-hidden="true"></i>
+          <h4>{{ label_total_campaigns }}</h4>
+          {{ campaigns }}
+        </span>
+      </div>
+      <div class="col-md-4 col-sm-6 col-xs-6">
+        <span class="label label-info stat_label">
+          <i class="fa fa-user" aria-hidden="true"></i>
+          <h4>{{ label_total_subscribers }}</h4>
+          {{ subscribers }}
+        </span>
+      </div>
+      <div class="col-md-4 col-sm-6 col-xs-6">
+        <span class="label label-default stat_label">
+          <i class="fa fa-user-circle" aria-hidden="true"></i>
+          <h4>{{ label_admin_subscribers }}</h4>
+          {{ admin_subscribers }}
+        </span>
+      </div>
+      <div class="col-md-4 col-sm-6 col-xs-6">
+        <span class="label label-warning stat_label">
+          <i class="fa fa-check-circle" aria-hidden="true"></i>
+          <h4>{{ label_success_rate }}</h4>
+          {{ rates.success }}%
+        </span>
+      </div>
+      <div class="col-md-4 col-sm-6 col-xs-6">
+        <span class="label label-danger stat_label">
+          <i class="fa fa-minus-circle" aria-hidden="true"></i>
+          <h4>{{ label_failed_rate }}</h4>
+          {{ rates.failed }}%
+        </span>
+      </div>
+      <div class="col-md-4 col-sm-6 col-xs-6">
+        <span class="label label-success stat_label">
+          <i class="fa fa-mouse-pointer" aria-hidden="true"></i>
+          <h4>{{ label_opened_rate }}</h4>
+          {{ rates.opened }}%
+        </span>
+      </div>
+    </div>
+
+    {# Carts #}
+    <div class="row" style="padding-top: 2rem">
+      <div class="col-md-6 col-sm-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">
+              <i class="fa fa-map-marker" aria-hidden="true"></i>
+              {{ label_subscriber_country }}
+            </h3>
+          </div>
+          <div class="panel-body">
+            <div id="locations" style="width: 100%; height: 300px">
+              {% if not countries %}
+              {{ text_no_data }}
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-sm-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">
+              <i class="fa fa-laptop" aria-hidden="true"></i>
+              {{ label_devices }}
+            </h3>
+          </div>
+          <div class="panel-body">
+            <div id="devices" style="width: 100%; height: 300px">
+              {% if not devices %}
+              {{ text_no_subscriptions }}
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{{ footer }}
+<script
+  type="text/javascript"
+  src="view/javascript/jquery/flot/jquery.flot.min.js"
+></script>
+<script
+  type="text/javascript"
+  src="view/javascript/jquery/flot/jquery.flot.pie.min.js"
+></script>
+<link
+  type="text/css"
+  href="view/javascript/jquery/jqvmap/jqvmap.css"
+  rel="stylesheet"
+  media="screen"
+/>
+<script
+  type="text/javascript"
+  src="view/javascript/jquery/jqvmap/jquery.vmap.js"
+></script>
+<script
+  type="text/javascript"
+  src="view/javascript/jquery/jqvmap/maps/jquery.vmap.world.js"
+></script>
+<script>
+    $(document).ready(function () {
+      function initDevicesChart(params) {
+        const chart = {{ devices | json_encode }};
+
+    	const colors = {
+    		"0":"#0770a9",
+    		"1":"#f3a638"
+    	}
+    		const data = chart.map((d, i) => ({label:d.device, data: d.total, color:colors[i]}));
+
+        const options = {
+          series: {
+            pie: {
+              show: true,
+    				label:{
+    					show: true,
+    				radius: 1/2,
+    			threshold: 0.1,
+  			formatter: function (label, series) {
+                return '<div style="font-size:8pt;text-align:center;padding:5px;color:white;">' +
+                label + ' : ' +
+                Math.round(series.percent) +
+                '%</div>';
+            },
+    				},
+    		},
+  		},
+  		legend: {
+  		show: false
+  }
+        };
+        $.plot("#devices", data, options);
+      }
+
+  	function initMap() {
+  	const countries = {{ countries | json_encode }};
+  	const data = []
+  	for (const country of countries) {
+  		data[country.country_code.toLowerCase()] = country.total;
+  	}
+
+  	$('#locations').vectorMap({
+  		map: 'world_en',
+  		backgroundColor: '#FFFFFF',
+  		borderColor: '#FFFFFF',
+  		color: '#9FD5F1',
+  		hoverOpacity: 0.7,
+  		selectedColor: '#666666',
+  		enableZoom: true,
+  		showTooltip: true,
+  		values: data,
+  		normalizeFunction: 'polynomial',
+  	  scaleColors: ['#2c7697', '#006491', '#0a456c'],
+  		onLabelShow: function(event, label, code) {
+  			if (data[code]) {
+  				label.html('<strong>' + label.text() + '</strong><br />' + '{{ label_total }}: ' + data[code]);
+  			}
+  		}
+  	});
+  	}
+      initDevicesChart();
+  	initMap()
+    });
+</script>

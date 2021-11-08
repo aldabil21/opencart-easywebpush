@@ -1,0 +1,400 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header container-fluid">
+    <div>
+      <h1>{{ heading_title }}</h1>
+      <ul class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+        <li>
+          <a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="container-fluid">
+    {% if error_warning %}
+    <div class="alert alert-danger alert-dismissible">
+      <i class="fa fa-exclamation-circle"></i>
+      {{ error_warning }}
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+    {% endif %} {% if success %}
+    <div class="alert alert-success alert-dismissible">
+      <i class="fa fa-check-circle"></i>
+      {{ success }}
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+    {% endif %}
+    <div class="panel panel-default">
+      <div class="panel-header">
+        {{ nav }}
+      </div>
+      <div class="panel-body">
+        <form
+          action="{{ action }}"
+          method="post"
+          enctype="multipart/form-data"
+          id="form-module"
+          class="form-horizontal"
+        >
+          {# Status #}
+          <div class="form-group col-xs-12">
+            <label class="control-label" for="input-status">{{
+              entry_status
+            }}</label>
+            <div class="">
+              <label class="radio-inline">
+                <input
+                  type="radio"
+                  name="status"
+                  value="1"
+                  {%
+                  if
+                  status
+                  %}
+                  checked
+                  {%
+                  endif
+                  %}
+                />
+                {{ text_enabled }}
+              </label>
+              <label class="radio-inline">
+                <input
+                  type="radio"
+                  name="status"
+                  value="0"
+                  {%
+                  if
+                  not
+                  status
+                  %}
+                  checked
+                  {%
+                  endif
+                  %}
+                />
+                {{ text_disabled }}
+              </label>
+            </div>
+          </div>
+
+          {# Bell Status #}
+          <div class="form-group">
+            <div class="col-sm-8">
+              <label class="control-label">
+                {{ entry_bell_status }}
+              </label>
+              <div class="">
+                <label class="radio-inline">
+                  <input
+                    type="radio"
+                    name="subscription_bell_status"
+                    value="1"
+                    {%
+                    if
+                    subscription_bell_status
+                    %}
+                    checked
+                    {%
+                    endif
+                    %}
+                  />
+                  {{ text_enabled }}
+                </label>
+                <label class="radio-inline">
+                  <input
+                    type="radio"
+                    name="subscription_bell_status"
+                    value="0"
+                    {%
+                    if
+                    not
+                    subscription_bell_status
+                    %}
+                    checked
+                    {%
+                    endif
+                    %}
+                  />
+                  {{ text_disabled }}
+                </label>
+              </div>
+            </div>
+            <div class="col-sm-4">
+              <img
+                width="100%"
+                src="/admin/view/image/easywebpush/subscription_bell_example.png"
+                alt="{{ entry_bell_status }}"
+              />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-sm-8">
+              {# Auto Prompt Status #}
+              <div class="form-group col-xs-12">
+                <label class="control-label">
+                  {{ entry_autoprompt_status }}
+                </label>
+                <div class="">
+                  <label class="radio-inline">
+                    <input
+                      type="radio"
+                      name="subscription_autoprompt_status"
+                      value="1"
+                      {%
+                      if
+                      subscription_autoprompt_status
+                      %}
+                      checked
+                      {%
+                      endif
+                      %}
+                    />
+                    {{ text_enabled }}
+                  </label>
+                  <label class="radio-inline">
+                    <input
+                      type="radio"
+                      name="subscription_autoprompt_status"
+                      value="0"
+                      {%
+                      if
+                      not
+                      subscription_autoprompt_status
+                      %}
+                      checked
+                      {%
+                      endif
+                      %}
+                    />
+                    {{ text_disabled }}
+                  </label>
+                </div>
+              </div>
+
+              {# Delay #}
+              <div
+                class="
+                  form-group
+                  col-xs-6
+                  {%
+                  if
+                  not
+                  subscription_autoprompt_status
+                  %}
+                  hidden
+                  {%
+                  endif
+                  %}
+                "
+                id="input-autoprompt_delay"
+              >
+                <label class="control-label" for="input-autoprompt_delay">
+                  <span
+                    data-toggle="tooltip"
+                    title="{{ entry_autoprompt_delay_helper }}"
+                    >{{ entry_autoprompt_delay }}</span
+                  >
+                </label>
+                <div class="">
+                  <input
+                    type="number"
+                    name="autoprompt_delay"
+                    value="{{ autoprompt_delay }}"
+                    class="form-control"
+                  />
+                  {% if error_autoprompt_delay %}
+                  <div class="text-danger">{{ error_autoprompt_delay }}</div>
+                  {% endif %}
+                </div>
+              </div>
+              {# Auto promot reinit #}
+              <div
+                class="
+                  form-group
+                  col-xs-6
+                  {%
+                  if
+                  not
+                  subscription_autoprompt_status
+                  %}
+                  hidden
+                  {%
+                  endif
+                  %}
+                "
+                id="input-autoprompt_reinit"
+              >
+                <label class="control-label" for="input-autoprompt_reinit">
+                  <span
+                    data-toggle="tooltip"
+                    title="{{ entry_autoprompt_reinit_helper }}"
+                    >{{ entry_autoprompt_reinit }}</span
+                  >
+                </label>
+                <div class="">
+                  <input
+                    type="number"
+                    name="autoprompt_reinit"
+                    value="{{ autoprompt_reinit }}"
+                    class="form-control"
+                  />
+                  {% if error_autoprompt_reinit %}
+                  <div class="text-danger">{{ error_autoprompt_reinit }}</div>
+                  {% endif %}
+                </div>
+              </div>
+
+              {# Prompt Text #}
+              <div class="form-group col-xs-12 required">
+                <label class="control-label">{{ entry_prompt_text }}</label>
+                <div class="">
+                  {% for language in languages %}
+                  <div class="input-group">
+                    <span class="input-group-addon"
+                      ><img
+                        src="language/{{ language.code }}/{{
+                          language.code
+                        }}.png"
+                        title="{{ language.name }}"
+                    /></span>
+                    <input
+                      type="text"
+                      name="prompt_text[{{ language.language_id }}][text]"
+                      value="{{ prompt_text[language.language_id] ? prompt_text[language.language_id].text }}"
+                      class="form-control"
+                    />
+                  </div>
+                  {% if error_prompt_text[language.language_id] %}
+                  <div class="text-danger">
+                    {{ error_prompt_text[language.language_id] }}
+                  </div>
+                  {% endif %} {% endfor %}
+                </div>
+              </div>
+
+              {# Primary Color #}
+              <div class="form-group col-xs-12 required">
+                <label class="control-label">
+                  <span
+                    data-toggle="tooltip"
+                    title="{{ entry_primary_color_helper }}"
+                    >{{ entry_primary_color }}</span
+                  >
+                </label>
+                <div class="">
+                  <input
+                    type="color"
+                    name="primary_color"
+                    value="{{ primary_color }}"
+                    style="height: 60px; width: 80px"
+                    class="form-control"
+                  />
+                </div>
+              </div>
+
+              {# Logo#}
+              <div class="form-group col-xs-12">
+                <label class="control-label" for="input-prompt_logo">{{
+                  entry_prompt_logo
+                }}</label>
+                <div class="">
+                  <a
+                    href=""
+                    id="thumb-logo"
+                    data-toggle="image"
+                    class="img-thumbnail"
+                  >
+                    <img
+                      src="{{ prompt_logo_preview }}"
+                      alt=""
+                      title=""
+                      data-placeholder="{{ placeholder }}"
+                    />
+                  </a>
+                  <input
+                    type="hidden"
+                    name="prompt_logo"
+                    value="{{ prompt_logo }}"
+                    id="input-prompt_logo"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="col-sm-4"
+              style="position: sticky; top: 100px; height: 100%"
+            >
+              <img
+                width="100%"
+                src="/admin/view/image/easywebpush/subscription_autoprompt_example.png"
+                alt="{{ entry_autoprompt_status }}"
+              />
+            </div>
+          </div>
+
+          {# Routes #}
+          <div class="form-group col-xs-12">
+            <label class="control-label">
+              {{ entry_prompt_routes }}
+            </label>
+            <div class="">
+              <div class="well well-sm" style="height: 150px; overflow: auto">
+                {% for route in routes %}
+                <div class="checkbox">
+                  <label>
+                    <input
+                      type="checkbox"
+                      name="prompt_routes[]"
+                      value="{{ route }}"
+                      {%
+                      if
+                      route
+                      in
+                      prompt_routes
+                      %}
+                      checked="checked"
+                      {%
+                      endif
+                      %}
+                    />
+                    {{ route }}
+                  </label>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          <div class="pull-right col-md-4 col-sm-6 col-xs-8">
+            <button
+              type="submit"
+              form="form-module"
+              class="btn btn-primary btn-lg btn-block"
+            >
+              <i class="fa fa-save"></i>
+              {{ button_save }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{{ footer }}
+<script>
+  $(document).ready(function () {
+    $("input[name=subscription_autoprompt_status]").on("change", function () {
+      if ($(this).val() > 0) {
+        $("#input-autoprompt_delay").removeClass("hidden");
+        $("#input-autoprompt_reinit").removeClass("hidden");
+      } else {
+        $("#input-autoprompt_delay").addClass("hidden");
+        $("#input-autoprompt_reinit").addClass("hidden");
+      }
+    });
+  });
+</script>

@@ -1,0 +1,363 @@
+{{ header }}{{ column_left }}
+<div class="" id="content">
+  <div class="page-header ewp container container-fluid">
+    <h1>{{ heading_title }}</h1>
+    <ul class="breadcrumb">
+      {% for breadcrumb in breadcrumbs %}
+      <li>
+        <a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div class="ewp container container-fluid">
+    {% if error_warning %}
+    <div class="alert alert-danger alert-dismissible">
+      <i class="fa fa-exclamation-circle"></i>
+      {{ error_warning }}
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+    {% endif %} {% if success %}
+    <div class="alert alert-success alert-dismissible">
+      <i class="fa fa-check-circle"></i>
+      {{ success }}
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+    {% endif %}
+    <div class="row">
+      {# Filters #}
+      <div id="filter-subscribers" class="col-md-3 col-md-push-9 col-sm-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">
+              <i class="fa fa-filter"></i> {{ text_filter }}
+            </h3>
+          </div>
+          <div class="panel-body">
+            <div class="form-group">
+              <label class="control-label" for="input-name">{{
+                label_name
+              }}</label>
+              <input
+                type="text"
+                name="name"
+                value="{{ name }}"
+                placeholder="{{ label_name }}"
+                id="input-name"
+                class="form-control"
+              />
+            </div>
+            <div class="form-group">
+              <label class="control-label" for="input-email">{{
+                label_email
+              }}</label>
+              <input
+                type="text"
+                name="email"
+                value="{{ email }}"
+                placeholder="{{ label_email }}"
+                id="input-email"
+                class="form-control"
+              />
+            </div>
+            <div class="form-group">
+              <label class="control-label" for="input-status">{{
+                label_device
+              }}</label>
+              <select name="device" id="input-status" class="form-control">
+                <option value=""></option>
+                {% if device == 'Desktop' %}
+                <option value="Desktop" selected="selected">Desktop</option>
+                {% else %}
+                <option value="Desktop">Desktop</option>
+                {% endif %} {% if device == 'Mobile' %}
+                <option value="Mobile" selected="selected">Mobile</option>
+                {% else %}
+                <option value="Mobile">Mobile</option>
+                {% endif %}
+              </select>
+            </div>
+            <div class="form-group text-right">
+              <button type="button" id="button-filter" class="btn btn-default">
+                <i class="fa fa-filter"></i> {{ button_filter }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      {# List #}
+      <div class="col-md-9 col-md-pull-3 col-sm-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">
+              <i class="fa fa-list"></i>
+              {{ text_subscribers_list }}
+            </h3>
+          </div>
+          <div class="panel-body">
+            <div class="table-responsive">
+              <form
+                action="{{ delete }}"
+                method="post"
+                enctype="multipart/form-data"
+                id="form-subscribers"
+              >
+                <div class="text-right" style="padding-bottom: 1rem">
+                  <button
+                    type="button"
+                    title="{{ button_send_to_selected }}"
+                    class="btn btn-primary send-all"
+                    data-toggle="modal"
+                    data-target="#notif-send"
+                    {%
+                    if
+                    not
+                    selected
+                    %}disabled{%
+                    endif
+                    %}
+                  >
+                    {{ button_send_to_selected }}
+                    <i class="fa fa-paper-plane-o" aria-hidden="true"></i>
+                  </button>
+                  <button
+                    type="button"
+                    data-toggle="tooltip"
+                    title="{{ button_delete }}"
+                    class="btn btn-danger"
+                    onclick="onDelete()"
+                  >
+                    <i class="fa fa-trash-o"></i>
+                  </button>
+                </div>
+                <table class="table table-bordered table-hover">
+                  <thead>
+                    <tr>
+                      <td style="width: 1px" class="text-center">
+                        <input
+                          class="webpush_select"
+                          type="checkbox"
+                          onclick="$('input[name*=\'selected\']').prop('checked', this.checked);"
+                        />
+                      </td>
+                      <td class="text-left">
+                        {{ label_name }}
+                      </td>
+                      <td class="text-left">
+                        {{ label_email }}
+                      </td>
+                      <td class="text-left">
+                        {{ label_telephone }}
+                      </td>
+                      <td class="text-left">
+                        {{ label_device }}
+                      </td>
+                      <td class="text-left">
+                        {{ label_date_added }}
+                      </td>
+                      <td class="text-right"></td>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% if subscribers %} {% for subscriber in subscribers %}
+                    <tr>
+                      <td class="text-center">
+                        {% if subscriber.id in selected %}
+                        <input
+                          class="webpush_select"
+                          type="checkbox"
+                          name="selected[]"
+                          value="{{ subscriber.id }}"
+                          checked="checked"
+                        />
+                        {% else %}
+                        <input
+                          class="webpush_select"
+                          type="checkbox"
+                          name="selected[]"
+                          value="{{ subscriber.id }}"
+                        />
+                        {% endif %}
+                      </td>
+                      <td class="text-left">{{ subscriber.name }}</td>
+                      <td class="text-left">{{ subscriber.email }}</td>
+                      <td class="text-left">{{ subscriber.telephone }}</td>
+                      <td class="text-left">{{ subscriber.device }}</td>
+                      <td class="text-left">{{ subscriber.date_added }}</td>
+                      <td class="text-center">
+                        <button
+                          class="btn btn-primary"
+                          data-id="{{ subscriber.id }}"
+                          data-toggle="modal"
+                          data-target="#notif-send"
+                        >
+                          <i class="fa fa-paper-plane-o" aria-hidden="true"></i>
+                        </button>
+                      </td>
+                    </tr>
+                    {% endfor %} {% else %}
+                    <tr>
+                      <td class="text-center" colspan="7">
+                        <i
+                          class="fa fa-users fa-5x"
+                          style="padding: 2rem 1rem"
+                          aria-hidden="true"
+                        ></i>
+                        <p>{{ text_no_subscriptions }}</p>
+                      </td>
+                    </tr>
+                    {% endif %}
+                  </tbody>
+                </table>
+              </form>
+            </div>
+          </div>
+          <div class="panel-footer">
+            <div class="">{{ results }}</div>
+            <div class="">{{ pagination }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{{ footer }}
+
+<div
+  class="modal fade"
+  id="notif-send"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="send_notif_label"
+>
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title" id="send_notif_label">
+          {{ text_send_subscription }}
+        </h4>
+      </div>
+      <div class="modal-body">
+        {{ emulator }}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">
+          {{ text_close }}
+        </button>
+        <button type="button" class="btn btn-primary" id="send">
+          {{ button_send }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function onDelete() {
+    const agree = confirm("{{ text_confirm }}");
+    if (agree) {
+      $("#form-subscribers").submit();
+    }
+  }
+  $(document).ready(function () {
+    $("button[data-toggle=modal]").on("click", function (e) {
+      e.preventDefault();
+      const id = $(this).data("id");
+      if (id) {
+        // Single send
+        $("input[name*='selected']").each(function () {
+          $(this).prop("checked", false);
+        });
+        $(`input[value='${id}']`).prop("checked", true);
+      }
+      const checked = $("input[name*='selected']:checked");
+      $(".modal-title").html(
+        `{{ text_send_subscription }} - (${checked.length}) {{ text_send_selected }}`
+      );
+    });
+    $("#send").on("click", function () {
+      $.ajax({
+        url: "index.php?route=extension/module/easywebpush/subscribers/send&user_token={{ user_token }}",
+        type: "POST",
+        cache: false,
+        data: $(
+          "input[name*='selected']:checked, input[name='title'], textarea[name='message'], input[name='icon'], input[name='image'], input[name='second_action']:checked, input[name='action_title'], input[name='action_link']"
+        ),
+        beforeSend: () => {
+          $(".alert, .text-danger").remove();
+          $(this).button("loading");
+        },
+        complete: () => {
+          $(this).button("reset");
+        },
+        success: function (json) {
+          if (json.validation) {
+            for (const key in json.validation) {
+              $(`#input-${key}`).after(`
+                <div class="text-danger">
+                  ${json.validation[key]}
+                </div>
+              `);
+            }
+          }
+          if (json.success) {
+            $(".modal-footer").before(`
+							<div class="alert alert-success alert-dismissible" style="margin:5px">
+								<i class="fa fa-check-circle" aria-hidden="true"></i>
+								${json.success}
+								<button type="button" class="close" data-dismiss="alert">&times;</button>
+							</div>
+							`);
+          }
+          if (json.error) {
+            $(".modal-footer").before(`
+							<div class="alert alert-danger alert-dismissible" style="margin:5px">
+								<i class="fa fa-exclamation-circle"></i>
+								${json.error}
+								<button type="button" class="close" data-dismiss="alert">&times;</button>
+							</div>
+							`);
+          }
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+          console.log(thrownError, xhr.responseText);
+          return thrownError;
+        },
+      });
+    });
+    $("#button-filter").on("click", function () {
+      url =
+        "index.php?route=extension/module/easywebpush/subscribers&user_token={{ user_token }}";
+      var name = $("input[name='name']").val();
+      if (name) {
+        url += "&name=" + encodeURIComponent(name);
+      }
+      var email = $("input[name='email']").val();
+      if (email) {
+        url += "&email=" + encodeURIComponent(email);
+      }
+      var device = $("select[name='device']").val();
+      if (device !== "") {
+        url += "&device=" + encodeURIComponent(device);
+      }
+      location = url;
+    });
+    $(".webpush_select").on("change", function () {
+      const checked = $("input[name*='selected']:checked");
+      if (checked.length > 0) {
+        $(".send-all").prop("disabled", false);
+      } else {
+        $(".send-all").prop("disabled", true);
+      }
+    });
+  });
+</script>

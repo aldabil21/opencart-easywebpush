@@ -1,0 +1,94 @@
+{{ header }}{{ column_left }}
+<div id="content">
+	<div class="page-header container-fluid">
+		<div>
+			<h1>{{ heading_title }}</h1>
+			<ul class="breadcrumb">
+				{% for breadcrumb in breadcrumbs %}
+					<li>
+						<a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a>
+					</li>
+				{% endfor %}
+			</ul>
+		</div>
+	</div>
+	<div class="container-fluid">
+		{% if errors.error_warning %}
+			<div class="alert alert-danger alert-dismissible">
+				<i class="fa fa-exclamation-circle"></i>
+				{{ errors.error_warning}}
+				<button type="button" class="close" data-dismiss="alert">&times;</button>
+			</div>
+		{% endif %}
+		{% if success %}
+			<div class="alert alert-success alert-dismissible">
+				<i class="fa fa-check-circle"></i>
+				{{ success }}
+				<button type="button" class="close" data-dismiss="alert">&times;</button>
+			</div>
+		{% endif %}
+		<div class="panel panel-default">
+			<div class="panel-header">
+				{{ nav }}
+			</div>
+			<div class="panel-body">
+				<form action="{{ action }}" method="post" enctype="multipart/form-data" id="form-module" class="form-horizontal">
+					{% for manif in manifest %}
+						{% if manif.key == 'icons' %}
+							<h2>{{entry_pwa_icons}}</h2>
+							<p>{{entry_pwa_icons_helper}}</p>
+							{% for icon in manif.value %}
+								<div class="form-group col-md-3 col-xs-6">
+									<label class="control-label" for="input-icon_{{icon.sizes}}">{{ entry_pwa_icon }}
+										{{icon.sizes}}</label>
+									<div class="">
+										<a href="" id="thumb-logo-{{icon.sizes}}" data-toggle="image" class="img-thumbnail">
+											<img src="{{ icon.preview }}" alt="" title="" data-placeholder="{{ placeholder }}"/>
+										</a>
+										<input type="hidden" name="icons[{{icon.sizes}}]" value="{{ icon.src }}" id="input-icon_{{icon.sizes}}"/>
+									</div>
+								</div>
+							{% endfor %}
+						{% elseif manif.key == 'background_color' or manif.key == 'theme_color' %}
+							<div class="form-group col-xs-12 required">
+								<label class="control-label">
+									<span data-toggle="tooltip" title="{{manif.helper}}">{{ manif.text }}</span>
+								</label>
+								<div class="">
+									<input type="color" name="{{manif.key}}" value="{{ manif.value }}" style="height:60px;width:80px;" class="form-control"/>
+								</div>
+							</div>
+						{% elseif manif.key == 'display' or manif.key == 'scope' or manif.key == 'start_url' %}
+							<input type="hidden" name="{{ manif.key }}" value="{{ manif.value }}" class="form-control"/>
+						{% else %}
+							<div class="form-group col-xs-12 required">
+								<label class="control-label">
+									<span data-toggle="tooltip" title="{{manif.helper}}">{{ manif.text }}</span>
+								</label>
+								<div class="">
+									<input name="{{ manif.key }}" value="{{ manif.value }}" class="form-control"/>
+									{% if errors[manif.key] %}
+										<div class="text-danger">{{ errors[manif.key] }}</div>
+									{% endif %}
+								</div>
+							</div>
+						{% endif %}
+					{% endfor %}
+					<div class="pull-right col-md-4 col-sm-6 col-xs-8">
+						<button type="submit" form="form-module" class="btn btn-primary btn-lg btn-block">
+							<i class="fa fa-save"></i>
+							{{ button_save }}
+						</button>
+					</div>
+
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+{{ footer }}
+
+<script>
+	$( document ).ready( function()
+{} );
+</script>

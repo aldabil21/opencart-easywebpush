@@ -1,0 +1,177 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header container-fluid">
+    <div>
+      <h1>{{ heading_title }}</h1>
+      <ul class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+        <li>
+          <a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="container-fluid">
+    {% if errors.error_warning %}
+    <div class="alert alert-danger alert-dismissible">
+      <i class="fa fa-exclamation-circle"></i>
+      {{ errors.error_warning }}
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+    {% endif %} {% if success %}
+    <div class="alert alert-success alert-dismissible">
+      <i class="fa fa-check-circle"></i>
+      {{ success }}
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+    {% endif %}
+    <div class="panel panel-default">
+      <div class="panel-header">
+        {{ nav }}
+      </div>
+      <div class="panel-body">
+        <div style="padding-bottom: 1rem">
+          <h2>{{ text_vapid_keys }}</h2>
+          <p>{{ text_vapid_keys_intro }}</p>
+          <p>{{ text_vapid_keys_intro1 }}</p>
+          <hr />
+        </div>
+        <div
+          id="view_keys"
+          {%
+          if
+          edit_mode
+          %}
+          style="display: none"
+          {%
+          endif
+          %}
+        >
+          <div class="row">
+            <div class="col-sm-2">
+              <strong>{{ entry_vapid_public }}: </strong>
+            </div>
+            <div class="col-sm-10">
+              <p style="overflow-wrap: anywhere">{{ vapid_public }}</p>
+            </div>
+            <div class="col-sm-2">
+              <strong>{{ entry_vapid_private }}: </strong>
+            </div>
+            <div class="col-sm-10">
+              <p style="overflow-wrap: anywhere">{{ vapid_private }}</p>
+            </div>
+          </div>
+          <div style="padding: 2rem 0">
+            <button class="btn btn-lg btn-block" id="request_edit">
+              <i class="fa fa-pencil"></i>
+              <span style="white-space: pre-wrap">{{
+                text_vapid_keys_edit
+              }}</span>
+            </button>
+          </div>
+        </div>
+        <form
+          action="{{ action }}"
+          method="post"
+          enctype="multipart/form-data"
+          id="form-module"
+          class="form-horizontal"
+          {%
+          if
+          not
+          edit_mode
+          %}
+          style="display: none"
+          {%
+          endif
+          %}
+        >
+          <div class="col-xs-12 required">
+            <label class="control-label">
+              {{ entry_vapid_public }}
+            </label>
+            <div class="">
+              <input
+                name="vapid_public"
+                value="{{ vapid_public }}"
+                class="form-control"
+              />
+              {% if errors.vapid_public %}
+              <div class="text-danger">{{ errors.vapid_public }}</div>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-xs-12 required">
+            <label class="control-label">
+              {{ entry_vapid_private }}
+            </label>
+            <div class="">
+              <input
+                name="vapid_private"
+                value="{{ vapid_private }}"
+                class="form-control"
+              />
+              {% if errors.vapid_private %}
+              <div class="text-danger">{{ errors.vapid_private }}</div>
+              {% endif %}
+            </div>
+            <div style="padding: 0.5rem 0">
+              <button class="btn btn-warning" id="vapid_generate">
+                <i class="fa fa-refresh"></i>
+                <span>{{ text_vapid_generate }}</span>
+              </button>
+            </div>
+          </div>
+
+          <div
+            class="pull-right col-md-4 col-sm-6 col-xs-8"
+            style="padding: 4rem 0 0"
+          >
+            <button
+              type="submit"
+              form="form-module"
+              class="btn btn-primary btn-lg btn-block"
+            >
+              <i class="fa fa-save"></i>
+              {{ button_save }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{{ footer }}
+
+<script>
+  $(document).ready(function () {
+    $("#request_edit").on("click", function () {
+      $("#view_keys").hide();
+      $("form").show();
+    });
+
+    $("#vapid_generate").on("click", function (e) {
+      e.preventDefault();
+      $.ajax({
+        url: "index.php?route=extension/module/easywebpush/vapid/generate&user_token={{ user_token }}",
+        type: "POST",
+        cache: false,
+        dataType: "json",
+        beforeSend: () => {
+          $(this).button("loading");
+        },
+        complete: () => {
+          $(this).button("reset");
+        },
+        success: function (json) {
+          $("input[name=vapid_public]").val(json.public);
+          $("input[name=vapid_private]").val(json.private);
+        },
+        error: function (xhr, _, err) {
+          console.log(err);
+        },
+      });
+    });
+  });
+</script>

@@ -1,0 +1,9 @@
+<nav class="">
+  <ul class="nav nav-pills nav-justified">
+    {% for nav in nav_menu %}
+    <li class="{% if nav.active %} active {% endif %}">
+      <a href="{{ nav.link }}">{{ nav.text }}</a>
+    </li>
+    {% endfor %}
+  </ul>
+</nav>

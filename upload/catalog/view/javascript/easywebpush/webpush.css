@@ -1,0 +1,113 @@
+.webpush_bell_wrapper {
+  position: fixed;
+  bottom: 5%;
+  margin: 0 5%;
+  z-index: 99;
+  transition: transform 400ms cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+.webpush_bell_wrapper.out {
+  transform: scale(0);
+}
+.webpush_bell_wrapper.in {
+  transform: scale(1);
+}
+.webpush_bell_overlay {
+  background: #00000038;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  transition: opacity 100ms ease-in;
+}
+.webpush_bell_overlay:hover {
+  opacity: 1;
+}
+.webpush_bell_overlay:active {
+  opacity: 0.4;
+}
+.webpush_bell {
+  position: relative;
+  overflow: hidden;
+  border: 0;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  box-shadow: 1px 1px 5px 0px #222;
+  background-color: var(--bg-color);
+}
+.webpush_bell:hover {
+  animation: bounce 400ms forwards;
+}
+.webpush_bell .fa {
+  color: #fff;
+  padding: 10px;
+  font-size: 3em;
+}
+.prompt-footer {
+  padding-top: 0;
+  border: 0;
+}
+.btn-webpush-cancel {
+  color: #757575;
+}
+.btn-webpush-cancel:hover {
+  color: #474747;
+}
+.btn-webpush-primary {
+  color: #fff;
+  background: var(--bg-color);
+  background-image: linear-gradient(to bottom, #00000040, var(--bg-color));
+}
+.btn-webpush-primary:hover,
+.btn-webpush-primary:focus {
+  color: #fff;
+  background-image: linear-gradient(to bottom, #00000070, var(--bg-color));
+}
+.btn-webpush-primary:active {
+  color: #fff;
+  background-image: linear-gradient(to bottom, #00000040, var(--bg-color));
+}
+#easywebpush_subscription p,
+#easywebpush_subscription h2,
+#easywebpush_subscription h4 {
+  line-height: 1.7;
+}
+@keyframes bounce {
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.webpush-checked {
+  text-align: center;
+  color: #222;
+}
+.webpush-checked > .fa {
+  color: #1aa700;
+  font-size: 140px;
+}
+/* 
+* Bell spinner
+*/
+.bell__spinner:after {
+  content: " ";
+  display: block;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 4px solid #fff;
+  border-color: #fff transparent #fff transparent;
+  animation: bell__spinner 1.2s linear infinite;
+}
+@keyframes bell__spinner {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

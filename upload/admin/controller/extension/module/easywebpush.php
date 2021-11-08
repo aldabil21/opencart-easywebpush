@@ -5,70 +5,20 @@ class ControllerExtensionModuleEasywebpush extends Controller
 
   public function index()
   {
-    $this->load->language('extension/module/easywebpush');
-    $this->document->setTitle($this->language->get('heading_title'));
-
-    $this->load->model('setting/setting');
-
-    if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
-
-      $this->model_setting_setting->editSetting('module_easywebpush', $this->request->post);
-
-      $this->session->data['success'] = $this->language->get('text_success');
-
-      $this->response->redirect($this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=module', true));
-    }
-
-    if (isset($this->error['warning'])) {
-      $data['error_warning'] = $this->error['warning'];
-    } else {
-      $data['error_warning'] = '';
-    }
-
-    //Breadcrumbs
-    $data['breadcrumbs'] = array();
-    $data['breadcrumbs'][] = array(
-      'text' => $this->language->get('text_home'),
-      'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'], true)
-    );
-    $data['breadcrumbs'][] = array(
-      'text' => $this->language->get('text_extension'),
-      'href' => $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=module', true)
-    );
-    $data['breadcrumbs'][] = array(
-      'text' => $this->language->get('heading_title'),
-      'href' => $this->url->link('extension/module/easywebpush', 'user_token=' . $this->session->data['user_token'], true)
-    );
-
-    //text
-    $data['text_edit'] = $this->language->get('text_edit');
-
-
-    $data['action'] = $this->url->link('extension/module/easywebpush', 'user_token=' . $this->session->data['user_token'], true);
-    $data['cancel'] = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=module', true);
-
-    //Status
-    if (isset($this->request->post['module_easywebpush_status'])) {
-      $data['module_easywebpush_status'] = $this->request->post['module_easywebpush_status'];
-    } else {
-      $data['module_easywebpush_status'] = $this->config->get('module_easywebpush_status');
-    }
-
-    $data['header'] = $this->load->controller('common/header');
-    $data['column_left'] = $this->load->controller('common/column_left');
-    $data['footer'] = $this->load->controller('common/footer');
-
-    $this->response->setOutput($this->load->view('extension/module/easywebpush/adminview', $data));
+    $this->response->redirect($this->url->link('extension/module/easywebpush/general', 'user_token=' . $this->session->data['user_token'], true));
   }
+
   public function install()
   {
+    $this->load->model('setting/setting');
     $this->load->model('setting/event');
+    $this->load->model('localisation/language');
     $this->load->model('extension/module/easywebpush');
     $this->load->language('extension/module/easywebpush');
 
-    // install Webpush
-    $installed = $this->model_extension_module_easywebpush->installWebpush();
-    if (!$installed) {
+    // Pre-install Checks
+    $checked = $this->model_extension_module_easywebpush->preInstall();
+    if (!$checked) {
       trigger_error($this->language->get('error_fail_install_webpush_lib'));
       exit;
     }
@@ -80,12 +30,14 @@ class ControllerExtensionModuleEasywebpush extends Controller
     }
 
     // Create events
-    $this->clearEvents(); //In case some left overs
-    $this->model_setting_event->addEvent('easywebpush', 'catalog/controller/common/header/before', 'extension/module/easywebpush/addGlobalScripts');
-    $this->model_setting_event->addEvent('easywebpush', 'catalog/view/common/home/after', 'extension/module/easywebpush/eventHomeAfter');
+    $this->unregisterEvents(); //In case some left overs
+    $this->model_extension_module_easywebpush->registerEvents();
 
     //install tables
     $this->model_extension_module_easywebpush->createTables();
+
+    // Set Initial Settings
+    $this->model_extension_module_easywebpush->setInitialSettings();
 
     //add extension 
     $this->load->model('setting/extension');
@@ -96,14 +48,28 @@ class ControllerExtensionModuleEasywebpush extends Controller
   {
     if ($this->validate()) {
 
-      $this->clearEvents();
+      $this->unregisterEvents();
 
       $this->load->model('extension/module/easywebpush');
       // $this->model_extension_module_easywebpush->dropTables();
 
+      $ROOT_DIR = str_replace('\\', '/', realpath(DIR_APPLICATION . '..'));
+      unlink($ROOT_DIR . "/sw.js");
+      unlink($ROOT_DIR . "/manifest.json");
+
       $this->load->model('setting/extension');
       $this->model_setting_extension->uninstall('module', 'easywebpush');
     }
+  }
+  public function preserveVapidsOnUninstall()
+  {
+    $this->load->model('setting/setting');
+    $settings = $this->model_setting_setting->getSetting('module_easywebpush');
+    $preserve = array(
+      'module_easywebpush_uninstalled_vapid_public' => $settings["module_easywebpush_vapid_public"],
+      'module_easywebpush_uninstalled_vapid_private' => $settings["module_easywebpush_vapid_private"],
+    );
+    $this->model_setting_setting->editSetting('module_easywebpush_uninstalled', $preserve);
   }
   protected function validate()
   {
@@ -113,7 +79,7 @@ class ControllerExtensionModuleEasywebpush extends Controller
 
     return !$this->error;
   }
-  protected function clearEvents()
+  protected function unregisterEvents()
   {
     $this->model_setting_event->deleteEventByCode('easywebpush');
   }

@@ -1,7 +1,7 @@
 const STATIC_CACHE = "static";
 const PAGES_CACHE = "pages";
-const static_urls = [""]; //Add yours statics urls here
-const pages_urls = ["/"]; //Add the pages you want to cache to load offline here
+const static_urls = []; //Add yours statics urls here
+const pages_urls = []; //Add the pages you want to cache to load offline here
 const staticReg = /\b^css|js|woff2|webp|json|jpg|png*\b/;
 const browser_extensions = /^chrome-extension:/;
 const p_reg = "^\\" + pages_urls.map((u) => u + "$").join("|\\") + "\\b";
@@ -24,7 +24,8 @@ self.addEventListener("fetch", (event) => {
   if (
     //GET: No support for other requests: see https://w3c.github.io/ServiceWorker/#cache-put No.4
     event.request.clone().method === "GET" &&
-    !browser_extensions.test(event.request.url) // Omit browser extensions
+    !browser_extensions.test(event.request.url) && // Omit browser extensions
+    !/\/admin\//.test(event.request.url) //Omit admin statics
   ) {
     const reqUrl = event.request.url.split(".");
     const ext = reqUrl[reqUrl.length - 1]; //Get extention type
@@ -37,7 +38,7 @@ self.addEventListener("fetch", (event) => {
           const staticCachedResponse = await staticCache.match(event.request);
           if (staticCachedResponse) {
             //Return statics from cashe
-            // console.log("FROM CACHE", staticCachedResponse);
+            revalidateResponse(staticCache, event.request);
             return staticCachedResponse;
           } else {
             const networkResponsePromise = await fetch(event.request.clone());
@@ -70,7 +71,10 @@ self.addEventListener("fetch", (event) => {
     }
   }
 });
-
+async function revalidateResponse(storage, request) {
+  const networkResponsePromise = await fetch(request.clone());
+  await storage.put(request, networkResponsePromise.clone());
+}
 self.addEventListener("push", function (event) {
   if (!(self.Notification && self.Notification.permission === "granted")) {
     return;
@@ -89,7 +93,6 @@ self.addEventListener("push", function (event) {
       actions: payload.actions,
     });
   };
-
   if (event.data) {
     const message = event.data.text();
     event.waitUntil(sendNotification(message));
@@ -98,11 +101,15 @@ self.addEventListener("push", function (event) {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
+  const action_link = !!event.notification?.data
+    ? event.notification.data.link
+    : "";
+
   if (event.action === "close") {
     return;
   } else if (
-    (event.action === "action" && event.notification.data) || //Clicked on action btn
-    (event.action === "" && event.notification.data) //click on msg it self
+    (event.action === "action" && !!action_link) || //Clicked on action btn
+    (!event.action && !!action_link) //click on msg it self
   ) {
     event.waitUntil(
       clients
@@ -110,7 +117,7 @@ self.addEventListener("notificationclick", (event) => {
         .then((clientsArr) => {
           // If a Window tab exists => true
           const hasWindow = clientsArr.some((windowClient) => {
-            if (windowClient.url === event.notification.data) {
+            if (windowClient.url === action_link) {
               windowClient.focus();
               return true;
             } else {
@@ -119,7 +126,19 @@ self.addEventListener("notificationclick", (event) => {
           });
           // Otherwise, open a new tab
           if (!hasWindow) {
-            return clients.openWindow(event.notification.data);
+            return clients.openWindow(action_link);
+          }
+        })
+        .then(() => {
+          const isCampaign =
+            !!event.notification?.data &&
+            !!event.notification?.data?.campaign_id &&
+            !!event.notification?.data?.url;
+
+          if (isCampaign) {
+            fetch(
+              `${event.notification.data.url}?route=extension/module/easywebpush/reportopen&campaign_id=${event.notification.data.campaign_id}`
+            );
           }
         })
     );

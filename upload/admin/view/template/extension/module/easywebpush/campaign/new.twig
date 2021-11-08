@@ -1,0 +1,208 @@
+{{ header }}{{ column_left }}
+<div class="" id="content">
+  <div class="page-header ewp container container-fluid">
+    <h1>{{ heading_title }}</h1>
+    <ul class="breadcrumb">
+      {% for breadcrumb in breadcrumbs %}
+      <li>
+        <a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div class="ewp container container-fluid">
+    {% if error_warning %}
+    <div class="alert alert-danger alert-dismissible">
+      <i class="fa fa-exclamation-circle"></i>
+      {{ error_warning }}
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+    {% endif %}
+		<form action="{{action}}" method="post"	enctype="multipart/form-data">
+			<div class="row">
+				<div id="segmentation" class="col-sm-12">
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<h3 class="panel-title">
+								<i class="fa fa-filter"></i>
+								{{ text_campaign_info }}
+							</h3>
+						</div>
+						<div class="panel-body">
+							<div class="row">
+								<div class="form-group col-sm-6 ">
+									<label class="control-label" for="input-name">{{
+										label_name
+									}}</label>
+									<input
+										type="text"
+										name="name"
+										value="{{ name }}"
+										placeholder="{{ label_name }}"
+										id="input-name"
+										class="form-control"
+									/>
+									{% if errors.name %}
+									<div class="text-danger">{{ errors.name }}</div>
+									{% endif %}
+								</div>
+							</div>
+							<div class="form-group row">
+								<div class="col-sm-4 first_filter">
+									<label class="control-label" for="input-first_filter">{{
+										label_target
+									}}</label>
+									<select name="first_filter" id="input-first_filter" class="form-control">
+										{% for key, first in first_filters %}
+											<option value="{{ key }}" {% if first_filter == key %} selected {% endif %}>
+												{{ first }}
+											</option>
+										{% endfor %}
+									</select>
+								</div>
+								
+								<div class="col-sm-4 second_filter"
+										{% if not first_filter or first_filter == 'all' %} style="display: none;" {% endif %}>
+									<label class="control-label" for="input-second_filter">{{
+										label_filter2
+									}}</label>
+									<select name="second_filter" id="input-second_filter" class="form-control">
+										{% for key, second in second_filters %}
+											<option value="{{ key }}" {% if second_filter == key %} selected {% endif %}>
+												{{ second }}
+											</option>
+										{% endfor %}
+									</select>
+								</div>
+	
+								<div class="col-sm-4 third_filter"
+										{% if second_filter != 'device' and second_filter != 'customer_group' and second_filter != 'country' %} style="display: none;" {% endif %}>
+									<label class="control-label" for="input-third_filter">{{
+										label_filter3
+									}}</label>
+									<select name="third_filter" id="input-third_filter" class="form-control">
+										{% if second_filter == 'device' %}
+											<option value="Desktop" {% if third_filter == 'Desktop' %} selected {% endif %}>Desktop</option>
+											<option value="Mobile" {% if third_filter == 'Mobile' %} selected {% endif %}>Mobile</option>
+										{% elseif second_filter == 'customer_group' %}
+											{% for group in customer_groups %}
+											<option value="{{group.customer_group_id}}" {% if third_filter == group.customer_group_id %} selected {% endif %}>{{group.name}}</option>
+											{% endfor %}
+										{% elseif second_filter == 'country' %}
+											{% for country in countries %}
+											<option value="{{country.country_code}}" {% if third_filter == country.country_code %} selected {% endif %}>{{country.country_name}}</option>
+											{% endfor %}
+										{% endif %}
+									</select>
+								</div>
+								
+								<div class="col-xs-12" style="margin: 20px 0 0; text-align:end;">
+									<span class="label label-primary total_subscribers" style="font-size: 1.5rem;">
+										{{text_total_targeted}}: <span id="total">
+											<div class="spinner"></div>
+										</span>
+									</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-sm-12">
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<h3 class="panel-title">
+								<i class="fa fa-filter"></i>
+								{{ text_campaign_message }}
+							</h3>
+						</div>
+						<div class="panel-body emulator">
+							{{ emulator }}
+							<div class="pull-right col-md-4 col-sm-6 col-xs-8">
+								<button
+									type="submit"
+									class="btn btn-primary btn-lg btn-block"
+								>
+									<i class="fa fa-send"></i>
+									{{ button_send }}
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+  </div>
+</div>
+{{ footer }}
+
+<script>
+  $(document).ready(function () {
+		
+		function getTotal() {
+			$.ajax({
+        url: "index.php?route=extension/module/easywebpush/campaign/total&user_token={{ user_token }}",
+        type: "POST",
+        cache: false,
+        data: $("select:visible"),
+        beforeSend: () => {
+          $(".total_subscribers #total").html(`<div class="spinner"></div>`)
+        },
+        complete: () => {
+					$(".total_subscribers .spinner").remove();
+        },
+        success: function (total) {
+					if(+total <= 0){
+						$(".total_subscribers").removeClass("label-primary")
+						$(".total_subscribers").addClass("label-danger")
+					}else{
+						$(".total_subscribers").removeClass("label-danger")
+						$(".total_subscribers").addClass("label-primary")
+					}
+          $(".total_subscribers #total").html(total || "0")
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+          console.log(thrownError, xhr.responseText);
+          return thrownError;
+        },
+      });
+    
+		}
+		$("form select").on("change", function(){
+			if($(".first_filter select").val() === "all"){
+				$(".second_filter").hide()
+				$(".third_filter").hide()
+			}else{
+				$(".second_filter").show()
+			}
+			if($(".second_filter select:visible").val() === "device"){
+				const third = $(".third_filter select");
+				third.html(`
+					<option value="Desktop" ${third.val() === "Desktop" ? 'selected' : ''} >Desktop</option>
+					<option value="Mobile" ${third.val() === "Mobile" ? 'selected' : ''}>Mobile</option>
+					`);
+				$(".third_filter").show();
+			}else if ($(".second_filter select:visible").val() === "customer_group") {
+				const third = $(".third_filter select");
+				third.html(`
+					{% for group in customer_groups %}
+						<option value="{{group.customer_group_id}}" ${third.val() === "{{group.customer_group_id}}" ? 'selected' : ''}>{{group.name}}</option>
+					{% endfor %}
+					`);
+				$(".third_filter").show();
+			}else if ($(".second_filter select:visible").val() === "country") {
+				const third = $(".third_filter select");
+				third.html(`
+					{% for country in countries %}
+						<option value="{{country.country_code}}" ${third.val() === "{{country.country_code}}" ? 'selected' : ''}>{{country.country_name}}</option>
+					{% endfor %}
+					`);
+				$(".third_filter").show();
+			}else{
+				$(".third_filter").hide()
+			}
+			getTotal()
+		})
+		getTotal();
+	});
+</script>
