@@ -24,9 +24,17 @@ After installation, make sure you enable the extension permissions at the `User 
 3. Campaign segmentation/targeting filters are way too simple and limited.
 4. Events trigger selection are also way too simple and limited.
 
+## Q&A
+**Q: How I can customize the push notification welcome message and/or promot modal text.**
+A: This extension have only English "en-gb" language folder, so if you want to change it for another language, you can create a language file (for ex: admin/language/your-lang/extension/module/easywebpush.php), copy the content from the en-gb folder, and translate it. Another option is to use the OpenCart Language Editor (Design/Language Editor), there you can change the extention text.
+**Q: Auto prompt doesn't work**
+A: If the promot has been closed/cancelled once, it will take 24h to re-prompt the modal, this is the default setting and you can change it in settings menu. If you want to test it, open your browser dev application tab, delete the prompt date local storage.
 
 ## Roadmap 🚧
-- [x] Client subscription method/triggers, with different themes (floating bell, auto prompt) to be choosed in admin settings dashboard.
+- Client
+  - [x] Client subscription method/triggers, with different themes (floating bell, auto prompt) to be choosed in admin settings dashboard.
+  - [ ] Notify me when price drop/Notify me when product back in stock button options in product page.
+- Admin
 - [x] Admin settings dashboard that contains:
   - [x] Generating & Editing of VAPID keys.
   - [x] Editing default options of a push notification.
@@ -35,8 +43,11 @@ After installation, make sure you enable the extension permissions at the `User 
   - [x] Some analytics, such as number of subscribers, demographics etc...
   - [x] Campaigns, with segmentation/targeting bulk send, with receiving/errors report analysis.
   - [x] Ability to adjust menifest file info (name, icon, color). Perhaps auto generate on install as well.
-
-More to be decided according to feedbacks.
+  - [ ] Choose bell position (left, right).
+  - [ ] Add client event triggers: new product, price drop, sale, back in stock, new content (*/information). Admin event triggers: low stock with custom minimal threshold.
+  - [ ] Set/select admin events based on admin group.
+  - [ ] Dynamic fields for abandond cart, automate sending with interval and maximum try notify.
+  - [ ] PWA: offline pages select, display mode, add to home screen button status with custom trigger setup (prompt, footer button).
 
 ## Credits 🙏🏼
 Credit acknowledgment to the following awesome resources:
@@ -49,5 +60,5 @@ Pull requests are welcome!
 
 ## Support 💚
 If you feel like supporting this work and improve it, you may purchase the extension at [OpenCart Marketplace](https://www.opencart.com/index.php?route=marketplace/extension/info&extension_id=42866) (still under review), or you may
-<a href="https://www.buymeacoffee.com/aldabil21" target="_blank" rel="noopener"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 50px !important;width: 180px !important;" ></a>
+<a href="https://www.buymeacoffee.com/aldabil21" target="_blank" rel="noopener"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height:40px; width:140px;max-width:100%; display: inline-block; position: relative; top: 15px;" ></a>
 
