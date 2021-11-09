@@ -27,6 +27,7 @@ After installation, make sure you enable the extension permissions at the `User 
 ## Q&A
 **Q: How I can customize the push notification welcome message and/or promot modal text.**
 A: This extension have only English "en-gb" language folder, so if you want to change it for another language, you can create a language file (for ex: admin/language/your-lang/extension/module/easywebpush.php), copy the content from the en-gb folder, and translate it. Another option is to use the OpenCart Language Editor (Design/Language Editor), there you can change the extention text.
+
 **Q: Auto prompt doesn't work**
 A: If the promot has been closed/cancelled once, it will take 24h to re-prompt the modal, this is the default setting and you can change it in settings menu. If you want to test it, open your browser dev application tab, delete the prompt date local storage.
 
