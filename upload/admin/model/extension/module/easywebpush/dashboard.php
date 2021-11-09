@@ -51,9 +51,9 @@ class ModelExtensionModuleEasywebpushDashboard extends Model
     $report = $report_query->row;
 
     $rates = array();
-    $rates['success'] = number_format(($camp['success'] / $camp['total']) * 100, 0);
-    $rates['failed'] = number_format(($camp['failed'] / $camp['total']) * 100, 0);
-    $rates['opened'] = number_format(($report['total'] / $camp['total']) * 100, 0);
+    $rates['success'] = $camp['success'] > 0 ? number_format(($camp['success'] / $camp['total']) * 100, 0) : 0;
+    $rates['failed'] = $camp['failed'] > 0 ? number_format(($camp['failed'] / $camp['total']) * 100, 0) : 0;
+    $rates['opened'] = $report['total'] > 0 ? number_format(($report['total'] / $camp['total']) * 100, 0) : 0;
 
     return $rates;
   }
