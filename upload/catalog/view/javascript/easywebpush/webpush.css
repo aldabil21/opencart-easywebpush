@@ -45,9 +45,21 @@
   padding: 10px;
   font-size: 3em;
 }
+.promot_logo {
+  min-width: 100px;
+}
+.promot_text {
+  font-size: 14px;
+}
 .prompt-footer {
   padding-top: 0;
   border: 0;
+}
+html[dir="rtl"] .btn-webpush .fa {
+  margin-left: 8px;
+}
+html[dir="ltr"] .btn-webpush .fa {
+  margin-right: 8px;
 }
 .btn-webpush-cancel {
   color: #757575;
@@ -109,5 +121,10 @@
   }
   100% {
     transform: rotate(360deg);
+  }
+}
+@media screen and (min-width: 400px) {
+  .promot_text {
+    font-size: 16px;
   }
 }
