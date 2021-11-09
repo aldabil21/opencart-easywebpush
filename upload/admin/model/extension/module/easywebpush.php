@@ -173,10 +173,10 @@ class ModelExtensionModuleEasywebpush extends Model
       `campaign_id` int(11) unsigned NOT NULL,
       `subscriber_id` int(11) unsigned NOT NULL DEFAULT 0,
       `opened` tinyint(1) NOT NULL DEFAULT 0,
-      `date` date NOT NULL DEFAULT current_timestamp(),
+      `date` datetime NOT NULL DEFAULT current_timestamp(),
       PRIMARY KEY (`id`),
       KEY `campaign_id` (`campaign_id`),
-      CONSTRAINT `oc_easywebpush_report_ibfk_1` FOREIGN KEY (`campaign_id`) REFERENCES `oc_easywebpush_campaign` (`campaign_id`) ON DELETE CASCADE ON UPDATE CASCADE
+      CONSTRAINT `" . DB_PREFIX . "_easywebpush_report_ibfk_1` FOREIGN KEY (`campaign_id`) REFERENCES `" . DB_PREFIX . "easywebpush_campaign` (`campaign_id`) ON DELETE CASCADE ON UPDATE CASCADE
     ) ENGINE=MyISAM DEFAULT COLLATE=utf8_general_ci;");
 
     $this->db->query(" CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "easywebpush_subscription` (
