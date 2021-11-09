@@ -130,27 +130,33 @@
 
 <script>
   $(document).ready(function () {
+    const campaign = {{ campaign | json_encode }};
+    const chart = campaign.chart;
+
     const initChart = () => {
-      const chart = {{ campaign.chart | json_encode }};
+      const start = new Date(campaign.chart_start).getTime();
   	let data = []
       if (chart.length > 0) {
   		data = chart.map((d) => [new Date(d.date).getTime(), d.total]);
   	}else{
   		data = [[new Date().getTime(), 0]]
   	}
+    data = [[start, 0], ...data]
 
       const options = {
         colors: ["#4cb64c"],
         yaxis: {
           min: 0,
-  				minTickSize:1
+  				minTickSize:1,
+          tickDecimals:0
         },
         xaxis: {
-          min: new Date(chart[0]?.date || "").getTime(),
+          min: start,
           max: chart.length > 1 ? new Date(chart[chart.length - 1]?.date || "").getTime() : new Date().getTime(),
-          tickSize: [1, "day"],
+          minTickSize: [1, "day"],
           mode: "time",
           timeformat: "%Y-%m-%d",
+          autoScale:"loose"
         },
         grid: {
           hoverable: true,
@@ -200,6 +206,9 @@
         }
       });
     };
-    initChart();
+
+    if(!!campaign.action_link){
+      initChart();
+    }
   });
 </script>

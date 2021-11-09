@@ -58,13 +58,13 @@ class ModelExtensionModuleEasywebpushCampaign extends Model
   }
   public function getCampaignById($id)
   {
-    $camp_sql = "SELECT p.*, COUNT(r.opened) AS opened";
+    $camp_sql = "SELECT p.*, COUNT(r.opened) AS opened, DATE_FORMAT(p.date_added, '%Y-%m-%d') as chart_start";
     $camp_sql .= " FROM " . DB_PREFIX . "easywebpush_campaign p";
     $camp_sql .= " LEFT JOIN " . DB_PREFIX . "easywebpush_report r ON(p.campaign_id = r.campaign_id)";
     $camp_sql .= " WHERE p.campaign_id = '" . (int)$id . "'";
     $camp = $this->db->query($camp_sql);
 
-    $rep_sql = "SELECT COUNT(r.id) AS total, r.date ";
+    $rep_sql = "SELECT COUNT(r.id) AS total, DATE_FORMAT(r.date, '%Y-%m-%d') AS date";
     $rep_sql .= " FROM " . DB_PREFIX . "easywebpush_report r";
     // $rep_sql .= " LEFT JOIN " . DB_PREFIX . "customer c ON(c.customer_id = r.subscriber_id)";
     $rep_sql .= " WHERE r.campaign_id = '" . (int)$id . "'";
