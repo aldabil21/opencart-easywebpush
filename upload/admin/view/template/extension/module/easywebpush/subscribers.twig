@@ -78,8 +78,12 @@
                 {% endif %}
               </select>
             </div>
-            <div class="form-group text-right">
-              <button type="button" id="button-filter" class="btn btn-default">
+            <div class="form-group">
+              <button
+                type="button"
+                id="button-filter"
+                class="btn btn-default pull-right"
+              >
                 <i class="fa fa-filter"></i> {{ button_filter }}
               </button>
             </div>
@@ -103,7 +107,7 @@
                 enctype="multipart/form-data"
                 id="form-subscribers"
               >
-                <div class="text-right" style="padding-bottom: 1rem">
+                <div class="pull-right" style="padding-bottom: 1rem">
                   <button
                     type="button"
                     title="{{ button_send_to_selected }}"
@@ -156,7 +160,7 @@
                       <td class="text-left">
                         {{ label_date_added }}
                       </td>
-                      <td class="text-right"></td>
+                      <td class=""></td>
                     </tr>
                   </thead>
                   <tbody>
