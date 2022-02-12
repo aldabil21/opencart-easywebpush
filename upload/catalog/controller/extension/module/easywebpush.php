@@ -195,7 +195,7 @@ class ControllerExtensionModuleEasywebpush extends Controller
   {
     $result = array();
     if ($this->config->get('module_easywebpush_status')) {
-      $this->load->language('extension/module/easywebpush');
+      // $this->load->language('extension/module/easywebpush');
       $this->load->model('extension/module/easywebpush');
       $this->load->model('tool/image');
 
