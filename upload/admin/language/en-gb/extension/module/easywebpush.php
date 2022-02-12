@@ -96,6 +96,7 @@ $_['entry_primary_color']        = 'Primary Color';
 $_['entry_primary_color_helper'] = 'Color of floating bell & prompt primary button';
 $_['entry_prompt_logo']          = 'Prompt Logo';
 $_['entry_prompt_routes']        = 'Shows in';
+$_['entry_custom_css']           = 'Custom CSS';
 $_['entry_events_for_admin']     = 'Send push to admin when customer';
 $_['entry_events_for_customer']  = 'Send push to customer when admin';
 $_['entry_register']             = 'Register';

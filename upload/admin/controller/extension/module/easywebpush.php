@@ -51,7 +51,7 @@ class ControllerExtensionModuleEasywebpush extends Controller
       $this->unregisterEvents();
 
       $this->load->model('extension/module/easywebpush');
-      // $this->model_extension_module_easywebpush->dropTables();
+      $this->model_extension_module_easywebpush->dropTables();
 
       $ROOT_DIR = str_replace('\\', '/', realpath(DIR_APPLICATION . '..'));
       unlink($ROOT_DIR . "/sw.js");
@@ -82,5 +82,27 @@ class ControllerExtensionModuleEasywebpush extends Controller
   protected function unregisterEvents()
   {
     $this->model_setting_event->deleteEventByCode('easywebpush');
+  }
+  protected function deleteDirectory($dir)
+  {
+    if (!file_exists($dir)) {
+      return true;
+    }
+
+    if (!is_dir($dir)) {
+      return unlink($dir);
+    }
+
+    foreach (scandir($dir) as $item) {
+      if ($item == '.' || $item == '..') {
+        continue;
+      }
+
+      if (!$this->deleteDirectory($dir . DIRECTORY_SEPARATOR . $item)) {
+        return false;
+      }
+    }
+
+    return rmdir($dir);
   }
 }

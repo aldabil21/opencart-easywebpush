@@ -65,7 +65,7 @@ class ModelExtensionModuleEasywebpush extends Model
       'module_easywebpush_prompt_text' => $prompt_text,
       'module_easywebpush_primary_color' => '#3b9ac8',
       'module_easywebpush_prompt_logo' => '',
-      'module_easywebpush_prompt_html' => '',
+      'module_easywebpush_custom_css' => '',
       'module_easywebpush_prompt_routes' => $routes,
       'module_easywebpush_events_for_admin' => $admin_events,
       'module_easywebpush_events_for_customer' => $customer_events,
