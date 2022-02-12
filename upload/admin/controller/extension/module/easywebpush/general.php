@@ -136,11 +136,11 @@ class ControllerExtensionModuleEasywebpushGeneral extends Controller
   protected function validate()
   {
     if (!$this->user->hasPermission('modify', 'extension/module/easywebpush/general')) {
-      $this->error['error_warning'] = $this->language->get('error_permission');
+      $this->error['save_error_warning'] = $this->language->get('error_permission');
     }
     foreach ($this->request->post['prompt_text'] as $language_id => $value) {
       if ((utf8_strlen($value['text']) < 1) || (utf8_strlen($value['text']) > 255)) {
-        $this->error['error_warning'] = $this->language->get('error_save_fail');
+        $this->error['save_error_warning'] = $this->language->get('error_save_fail');
         $this->error['error_prompt_text'][$language_id] = $this->language->get('error_prompt_text');
       }
     }

@@ -33,6 +33,7 @@ class ControllerExtensionModuleEasywebpush extends Controller
       $data['autoprompt_delay'] = $this->config->get($key . 'autoprompt_delay') * 1000;
       $data['autoprompt_reinit'] = $this->config->get($key . 'autoprompt_reinit');
       $data['primary_color'] = $this->config->get($key . 'primary_color');
+      $data['custom_css'] = "<style>" . $this->config->get($key . 'custom_css') . "</style>";
 
       $text = $this->config->get($key . 'prompt_text');
       $lng = $this->config->get('config_language_id');
@@ -49,8 +50,8 @@ class ControllerExtensionModuleEasywebpush extends Controller
       }
 
       $buttons = $this->load->view('extension/module/easywebpush/webpush', $data);
-      $search = '</footer>';
-      $replace = $buttons . '</footer>';
+      $search = '</body>';
+      $replace = $buttons . '</body>';
       $output = str_replace($search, $replace, $output);
     }
   }
@@ -194,6 +195,7 @@ class ControllerExtensionModuleEasywebpush extends Controller
   {
     $result = array();
     if ($this->config->get('module_easywebpush_status')) {
+      $this->load->language('extension/module/easywebpush');
       $this->load->model('extension/module/easywebpush');
       $this->load->model('tool/image');
 

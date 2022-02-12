@@ -13,10 +13,10 @@
     </div>
   </div>
   <div class="container-fluid">
-    {% if error_warning %}
+    {% if save_error_warning %}
     <div class="alert alert-danger alert-dismissible">
       <i class="fa fa-exclamation-circle"></i>
-      {{ error_warning }}
+      {{ save_error_warning }}
       <button type="button" class="close" data-dismiss="alert">&times;</button>
     </div>
     {% endif %} {% if success %}
@@ -369,6 +369,22 @@
               </div>
             </div>
           </div>
+
+          {# Custom CSS #}
+          <div class="form-group col-xs-12">
+            <label class="control-label">
+              {{ entry_custom_css }}
+            </label>
+            <div style="height:250px">
+              <div class="well well-sm" style="height:100%; padding:0">
+                <textarea name="custom_css" id="input-custom_css"
+                style="min-width:100%;max-width:100%;min-height:100%;max-height:100%;background:transparent;">
+                  {{ custom_css }}
+                </textarea>
+              </div>
+            </div>
+          </div>
+
           <div class="pull-right col-md-4 col-sm-6 col-xs-8">
             <button
               type="submit"
