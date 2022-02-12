@@ -160,6 +160,7 @@ class ControllerExtensionModuleEasywebpushSubscribers extends Controller
   }
   public function send()
   {
+    $this->load->model('extension/module/easywebpush/subscribers');
     $result = array();
     if ($this->validateSend()) {
       $subscriptions = $this->model_extension_module_easywebpush_subscribers->getSubscriptionByIds($this->request->post['selected']);
@@ -192,9 +193,9 @@ class ControllerExtensionModuleEasywebpushSubscribers extends Controller
   public function notify($push)
   {
     $this->load->language('extension/module/easywebpush');
-    $this->load->model('extension/module/easywebpush/subscribers');
-    $result = array();
     $this->load->model('tool/image');
+
+    $result = array();
 
     //Settings values
     $publicKey = $this->config->get("module_easywebpush_vapid_public");

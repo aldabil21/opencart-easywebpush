@@ -10,6 +10,7 @@ $_["text_already_subscribed_title"]    = "Already One of Us!";
 $_["text_already_subscribed_subtitle"] = "You've a valid subscription and you should receive notifications on this device.";
 $_["text_unsubscription_success"]      = "We're sad to see you leave! You will not receive notfications anymore.";
 $_["text_unsubscription_error"]        = "Fail to unsubscribe, refresh and try again.";
+$_["text_close"]                       = "Close";
 
 // Push
 $_["push_subscription_success_title"]    = "Welcome Aboard!";
