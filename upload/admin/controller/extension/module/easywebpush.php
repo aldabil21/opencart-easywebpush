@@ -51,7 +51,7 @@ class ControllerExtensionModuleEasywebpush extends Controller
       $this->unregisterEvents();
 
       $this->load->model('extension/module/easywebpush');
-      $this->model_extension_module_easywebpush->dropTables();
+      // $this->model_extension_module_easywebpush->dropTables();
 
       $ROOT_DIR = str_replace('\\', '/', realpath(DIR_APPLICATION . '..'));
       unlink($ROOT_DIR . "/sw.js");
