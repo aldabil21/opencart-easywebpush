@@ -114,7 +114,7 @@ $_['entry_pwa_background_color_helper'] = 'Background color for the application 
 $_['entry_pwa_theme_color']        = 'Theme color';
 $_['entry_pwa_theme_color_helper'] = 'Theme color for the application. This affects app color depends on the OS';
 $_['entry_pwa_icons']              = 'App Icons';
-$_['entry_pwa_icons_helper']       = 'Notice: Be aware of the icon "minimum safe zone", use maskable images to better display your icon. This service is a good help to test your icons: <a href="https://maskable.app/editor" target="_blank" rel="noreferrer">maskable.app</a>';
+$_['entry_pwa_icons_helper']       = 'Notice: Only PNG, SVG, WebP formats are acceptable. Be aware of the icon "minimum safe zone", use maskable images to better display your icon. This service is a good help to test your icons: <a href="https://maskable.app/editor" target="_blank" rel="noreferrer">maskable.app</a>';
 $_['entry_pwa_icon']               = 'App Icon';
 $_['entry_vapid_public']           = 'Public Key';
 $_['entry_vapid_private']          = 'Private Key';

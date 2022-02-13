@@ -30,8 +30,12 @@ class ControllerExtensionModuleEasywebpushPwa extends Controller
           $tosave[$key] = $value;
         }
       }
-      file_put_contents($ROOT_DIR . "/manifest.json", json_encode($tosave));
-      $data['success'] = $this->language->get('text_saved_success');
+      $success = file_put_contents($ROOT_DIR . "/manifest.json", json_encode($tosave));
+      if ($success > 0) {
+        $data['success'] = $this->language->get('text_saved_success');
+      } else {
+        $this->error['error_warning'] = "Failed to re-write manifest.json";
+      }
     }
 
     // Errors
